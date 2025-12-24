@@ -277,6 +277,12 @@ body {
     border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
 }
 
+.search-container {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
 @keyframes slideInRight {
     from {
         opacity: 0;
@@ -1234,4 +1240,61 @@ body {
 .upload-results-summary strong {
     font-family: 'JetBrains Mono', monospace;
     font-size: 1.1rem;
+}
+
+/* Collapsible Search Input Styles */
+.search-input-wrapper-collapsible {
+    display: flex;
+    align-items: center;
+    background: transparent;
+    border-radius: 12px;
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    gap: 0;
+}
+
+.search-input-wrapper-collapsible.open {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    padding-right: 1rem;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.search-input-wrapper-collapsible .search-input-elite {
+    width: 0;
+    opacity: 0;
+    padding: 0;
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    pointer-events: none;
+    font-size: 0.9375rem;
+    border: none;
+    background: transparent;
+    outline: none;
+    color: #1e293b;
+    font-weight: 500;
+}
+
+.search-input-wrapper-collapsible.open .search-input-elite {
+    width: 220px;
+    opacity: 1;
+    padding: 0.75rem 0.5rem;
+    pointer-events: auto;
+}
+
+.search-toggle-btn {
+    border: 1px solid var(--border) !important;
+    background: white !important;
+    color: var(--text-muted) !important;
+    z-index: 2;
+}
+
+.search-input-wrapper-collapsible.open .search-toggle-btn {
+    border: none !important;
+    background: transparent !important;
+    color: var(--primary) !important;
+}
+
+.search-input-wrapper-collapsible:focus-within {
+    border-color: var(--primary);
+    background: white;
+    box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
 }

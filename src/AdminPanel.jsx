@@ -149,9 +149,7 @@ export default function AdminPanel() {
 
             const getDisplayDate = (ev) => {
                 if (!ev) return "";
-                if (ev.event?.toLowerCase().includes("activate") && ev.billingDate) {
-                    return ev.billingDate;
-                }
+                // Use the actual event date for display to ensure "First Seen" is accurate
                 return ev.date || "";
             };
 
