@@ -11,7 +11,8 @@ const RepositoryExplorer = ({
     totalPages,
     handlePageChange,
     onViewDetail,
-    originalDataCount
+    originalDataCount,
+    totalAmount
 }) => {
     const [showFilters, setShowFilters] = useState(false);
     const filterRef = useRef(null);
@@ -32,7 +33,14 @@ const RepositoryExplorer = ({
                 <div className="data-header-left">
                     <div className="data-header-title">
                         <h1>Database Records</h1>
-                        <p>{originalDataCount} stores indexed in cluster</p>
+                        <div style={{ display: 'flex', alignItems: 'start', flexDirection: 'column', marginTop: '4px' }}>
+                            <p style={{ color: 'var(--text-muted)' }}>
+                                Total Stores: <strong>{originalDataCount}</strong>
+                            </p>
+                            <p style={{ color: 'var(--text-muted)' }}>
+                                Total Amount: <strong>${totalAmount?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong>
+                            </p>
+                        </div>
                     </div>
                 </div>
 
@@ -143,9 +151,9 @@ const RepositoryExplorer = ({
                     </button>
                     <div className="page-indicator">
                         <span>Page</span>
-                        <strong>{currentPage}</strong>
+                        <strong>&nbsp;{currentPage}&nbsp;</strong>
                         <span>of</span>
-                        <strong>{totalPages}</strong>
+                        <strong>&nbsp;{totalPages}&nbsp;</strong>
                     </div>
                     <button
                         type="button"

@@ -59,12 +59,14 @@ const norm = v => (v || "").trim();
 app.post("/upload", upload.single("file"), async (req, res) => {
     if (!req.file) return res.status(400).json({ error: "No file" });
 
-    let inserted = 0, updated = 0;
+    let insertedCount = 0;
+    let updatedCount = 0;
 
     try {
         const shopData = {};
 
-        for await (const row of fs.createReadStream(req.file.path).pipe(csv())) {
+        const stream = fs.createReadStream(req.file.path).pipe(csv());
+        for await (const row of stream) {
             const shopDomain = norm(row.shop_domain || row["Shop domain"]);
             if (!shopDomain) continue;
 
@@ -87,6 +89,9 @@ app.post("/upload", upload.single("file"), async (req, res) => {
             shopData[shopDomain].rows.push(rowData);
         }
 
+        const totalUniqueShops = Object.keys(shopData).length;
+        console.log(`[CSV Processing] Unique Shops: ${totalUniqueShops}`);
+
         for (const shopDomain in shopData) {
             const rows = shopData[shopDomain].rows;
             const doc = await CsvData.findOne({ shopDomain });
@@ -99,7 +104,6 @@ app.post("/upload", upload.single("file"), async (req, res) => {
             }));
 
             if (doc) {
-                // Merge with existing additionalInfo and avoid duplicates
                 allEvents = [...doc.additionalInfo, ...allEvents];
             }
 
@@ -110,7 +114,6 @@ app.post("/upload", upload.single("file"), async (req, res) => {
                     eventMap.set(key, ev);
                 } else {
                     const existing = eventMap.get(key);
-                    // Crucial: Update if we have more info (details or billing date)
                     eventMap.set(key, {
                         ...existing,
                         details: ev.details || existing.details,
@@ -119,43 +122,47 @@ app.post("/upload", upload.single("file"), async (req, res) => {
                 }
             });
             allEvents = Array.from(eventMap.values());
-
             allEvents.sort((a, b) => new Date(a.date) - new Date(b.date));
 
             if (allEvents.length === 0) continue;
 
             const mainEvent = allEvents[0];
-            const additionalInfo = allEvents;
-
-            // Extract the most complete data for the first row properties
-            const firstRowData = rows[0];
-
             const data = {
                 shopDomain,
-                shopName: firstRowData.shopName,
-                shopCountry: firstRowData.shopCountry,
-                shopEmail: firstRowData.shopEmail,
+                shopName: rows[0].shopName || "",
+                shopCountry: rows[0].shopCountry || "",
+                shopEmail: rows[0].shopEmail || "",
                 date: mainEvent.date,
                 event: mainEvent.event,
-                additionalInfo
+                additionalInfo: allEvents
             };
 
             if (doc) {
                 Object.assign(doc, data);
                 await doc.save();
-                updated++;
+                updatedCount++;
             } else {
                 await CsvData.create(data);
-                inserted++;
+                insertedCount++;
             }
         }
 
         fs.unlinkSync(req.file.path);
-        res.json({ message: "Processed", inserted, updated });
+
+        const finalResponse = {
+            status: "success",
+            serverVersion: "1.3",
+            totalShops: totalUniqueShops,
+            newShops: insertedCount,
+            updatedShops: updatedCount
+        };
+
+        console.log("[Final Response]", finalResponse);
+        res.json(finalResponse);
 
     } catch (err) {
         console.error("Upload error:", err);
-        res.status(500).json({ error: "Internal error" });
+        res.status(500).json({ error: "Internal error", details: err.message });
     }
 });
 
@@ -168,4 +175,4 @@ app.get("/", async (req, res) => {
     }
 });
 
-app.listen(3000, () => console.log("🚀 http://localhost:3000"));
+app.listen(3000, () => console.log("🚀 Server running on http://localhost:3000"));

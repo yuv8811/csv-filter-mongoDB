@@ -211,6 +211,10 @@ export default function AdminPanel() {
 
     const totalPages = Math.max(1, Math.ceil(sortedAndFilteredData.length / itemsPerPage));
 
+    const totalAmount = useMemo(() => {
+        return sortedAndFilteredData.reduce((acc, item) => acc + (item.totalSpent || 0), 0);
+    }, [sortedAndFilteredData]);
+
     const handleFilterChange = (e) => {
         const { name, value } = e.target;
         setFilters(prev => ({
@@ -339,6 +343,7 @@ export default function AdminPanel() {
                         handlePageChange={setCurrentPage}
                         onViewDetail={setSelectedItem}
                         originalDataCount={sortedAndFilteredData.length}
+                        totalAmount={totalAmount}
                     />
                 )}
                 {activeTab === "import" && (
