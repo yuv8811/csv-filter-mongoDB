@@ -1,10 +1,10 @@
-import { useEffect, useState, useMemo, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState, useMemo } from "react";
 import Sidebar from "./components/sidebar";
 import RepositoryExplorer from "./components/RepositoryExplorer";
 import ExportEngine from "./components/ExportEngine";
 import Upload from "./components/Upload";
 import DetailModal from "./components/DetailModal";
+import MetafieldSearch from "./components/MetafieldSearch";
 
 export default function AdminPanel() {
     const [data, setData] = useState(null);
@@ -27,7 +27,6 @@ export default function AdminPanel() {
     const [selectedItem, setSelectedItem] = useState(null);
 
     const itemsPerPage = 50;
-    const navigate = useNavigate();
 
     const fetchData = async () => {
         try {
@@ -325,7 +324,6 @@ export default function AdminPanel() {
             <Sidebar
                 activeTab={activeTab}
                 setActiveTab={setActiveTab}
-                onExit={() => navigate("/")}
             />
 
             <main className="admin-main">
@@ -360,6 +358,9 @@ export default function AdminPanel() {
                         recordCount={sortedAndFilteredData.length}
                         onExport={exportToCSV}
                     />
+                )}
+                {activeTab === "metafields" && (
+                    <MetafieldSearch />
                 )}
             </main>
 

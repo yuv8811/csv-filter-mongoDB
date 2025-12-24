@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require("express");
 const mongoose = require("mongoose");
 const multer = require("multer");
@@ -47,6 +48,13 @@ const CsvSchema = new mongoose.Schema({
 }, { versionKey: false });
 
 const CsvData = mongoose.model("csvdatas", CsvSchema);
+
+const AccessTokenSchema = new mongoose.Schema({
+    "Access Token": String
+}, { collection: 'accessToken', versionKey: false });
+
+const AccessToken = mongoose.model("AccessToken", AccessTokenSchema);
+
 
 const upload = multer({
     dest: "uploads/",
@@ -172,6 +180,56 @@ app.get("/", async (req, res) => {
         res.json(data);
     } catch (err) {
         res.status(500).json({ error: "DB Error" });
+    }
+});
+
+app.get("/shopify/metafields", async (req, res) => {
+    const { shop } = req.query;
+    if (!shop) return res.status(400).json({ error: "Shop domain is required" });
+
+    // Fetch access token from MongoDB
+    const tokenDoc = await AccessToken.findOne();
+    const accessToken = tokenDoc ? tokenDoc["Access Token"] : process.env.SHOPIFY_ACCESS_TOKEN;
+
+    const query = `
+        {
+        shop {
+            name
+            email
+            myshopifyDomain
+            plan {
+              displayName
+            }
+            metafields(first: 50) {
+            edges {
+                node {
+                id
+                namespace
+                key
+                value
+                type
+                }
+            }
+            }
+        }
+        }
+    `;
+
+    try {
+        const response = await fetch(`https://${shop}/admin/api/2024-01/graphql.json`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-Shopify-Access-Token": accessToken,
+            },
+            body: JSON.stringify({ query }),
+        });
+
+        const data = await response.json();
+        res.json(data);
+    } catch (err) {
+        console.error("Shopify API Error:", err);
+        res.status(500).json({ error: "Failed to fetch from Shopify", details: err.message });
     }
 });
 
