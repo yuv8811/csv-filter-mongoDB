@@ -6,12 +6,30 @@ const fs = require("fs");
 const cors = require("cors");
 
 const app = express();
-app.use(cors());
 app.use(express.json());
+app.use(cors());
 
-mongoose.connect("mongodb://localhost:27017/csv-filter")
-    .then(() => console.log("✅ Mongo connected"))
-    .catch(() => process.exit(1));
+const mongoURI = "mongodb://localhost:27017/csv-filter";
+
+const connectDB = async (retryCount = 5) => {
+    try {
+        await mongoose.connect(mongoURI, {
+            serverSelectionTimeoutMS: 5000,
+            socketTimeoutMS: 45000,
+        });
+        console.log("✅ Mongo connected successfully");
+    } catch (err) {
+        console.error(`❌ Mongo connection error (Retries left: ${retryCount}):`, err.message);
+        if (retryCount > 0) {
+            console.log("🔄 Retrying in 5 seconds...");
+            setTimeout(() => connectDB(retryCount - 1), 5000);
+        } else {
+            console.error("💀 Max retries reached. Please check your internet connection or DNS settings.");
+        }
+    }
+};
+
+connectDB();
 
 const CsvSchema = new mongoose.Schema({
     shopDomain: { type: String, unique: true, required: true },
@@ -20,7 +38,12 @@ const CsvSchema = new mongoose.Schema({
     shopEmail: String,
     date: String,
     event: String,
-    additionalInfo: [{ date: String, event: String, details: String }]
+    additionalInfo: [{
+        date: String,
+        event: String,
+        details: String,
+        billingDate: String
+    }]
 }, { versionKey: false });
 
 const CsvData = mongoose.model("csvdatas", CsvSchema);
@@ -48,6 +71,7 @@ app.post("/upload", upload.single("file"), async (req, res) => {
             const date = norm(row.date || row.Date);
             const event = norm(row.event || row.Event);
             const details = norm(row.details || row.Details || row.additional_info || row["Additional info"]);
+            const billingDate = norm(row["Billing on"] || row.billing_date || row["Billing date"]);
 
             const rowData = {
                 shopName: norm(row.shop_name || row["Shop name"]),
@@ -55,7 +79,8 @@ app.post("/upload", upload.single("file"), async (req, res) => {
                 shopEmail: norm(row.email || row["Shop email"]),
                 date,
                 event,
-                details
+                details,
+                billingDate
             };
 
             if (!shopData[shopDomain]) shopData[shopDomain] = { rows: [] };
@@ -66,7 +91,13 @@ app.post("/upload", upload.single("file"), async (req, res) => {
             const rows = shopData[shopDomain].rows;
             const doc = await CsvData.findOne({ shopDomain });
 
-            let allEvents = rows.map(r => ({ date: r.date, event: r.event, details: r.details }));
+            let allEvents = rows.map(r => ({
+                date: r.date,
+                event: r.event,
+                details: r.details,
+                billingDate: r.billingDate
+            }));
+
             if (doc) {
                 // Merge with existing additionalInfo and avoid duplicates
                 allEvents = [...doc.additionalInfo, ...allEvents];
@@ -78,11 +109,13 @@ app.post("/upload", upload.single("file"), async (req, res) => {
                 if (!eventMap.has(key)) {
                     eventMap.set(key, ev);
                 } else {
-                    // If we have details now but didn't before, update it
                     const existing = eventMap.get(key);
-                    if (!existing.details && ev.details) {
-                        eventMap.set(key, ev);
-                    }
+                    // Crucial: Update if we have more info (details or billing date)
+                    eventMap.set(key, {
+                        ...existing,
+                        details: ev.details || existing.details,
+                        billingDate: ev.billingDate || existing.billingDate
+                    });
                 }
             });
             allEvents = Array.from(eventMap.values());
@@ -94,22 +127,14 @@ app.post("/upload", upload.single("file"), async (req, res) => {
             const mainEvent = allEvents[0];
             const additionalInfo = allEvents;
 
-            let mainRow = rows.find(r => r.date === mainEvent.date && r.event === mainEvent.event);
-            if (!mainRow && doc) {
-                mainRow = {
-                    shopName: doc.shopName,
-                    shopCountry: doc.shopCountry,
-                    shopEmail: doc.shopEmail,
-                    details: mainEvent.details
-                };
-            }
-            if (!mainRow) mainRow = rows[0];
+            // Extract the most complete data for the first row properties
+            const firstRowData = rows[0];
 
             const data = {
                 shopDomain,
-                shopName: mainRow.shopName,
-                shopCountry: mainRow.shopCountry,
-                shopEmail: mainRow.shopEmail,
+                shopName: firstRowData.shopName,
+                shopCountry: firstRowData.shopCountry,
+                shopEmail: firstRowData.shopEmail,
                 date: mainEvent.date,
                 event: mainEvent.event,
                 additionalInfo
@@ -126,18 +151,21 @@ app.post("/upload", upload.single("file"), async (req, res) => {
         }
 
         fs.unlinkSync(req.file.path);
-
-        res.json({ message: "CSV processed", inserted, updated });
+        res.json({ message: "Processed", inserted, updated });
 
     } catch (err) {
-        res.status(500).json({ error: err.message });
+        console.error("Upload error:", err);
+        res.status(500).json({ error: "Internal error" });
     }
 });
 
-app.get("/", async (_, res) =>
-    res.json(await CsvData.find())
-);
+app.get("/", async (req, res) => {
+    try {
+        const data = await CsvData.find().sort({ _id: -1 });
+        res.json(data);
+    } catch (err) {
+        res.status(500).json({ error: "DB Error" });
+    }
+});
 
-app.listen(3000, () =>
-    console.log("🚀 http://localhost:3000")
-);
+app.listen(3000, () => console.log("🚀 http://localhost:3000"));

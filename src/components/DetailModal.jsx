@@ -38,15 +38,21 @@ const DetailModal = ({ item, onClose }) => {
                                 <div className="activity-main-info">
                                     <span className="activity-primary-text">{ev.event}</span>
                                     <span className="activity-secondary-text">{ev.date}</span>
+                                    {ev.billingDate && (
+                                        <div style={{ fontSize: '0.7rem', color: 'var(--primary)', marginTop: '4px', fontWeight: 600 }}>
+                                            Billing Date: {ev.billingDate}
+                                        </div>
+                                    )}
                                     {ev.details && (
                                         <span className="activity-details-text" style={{
                                             fontSize: '0.75rem',
                                             color: '#64748b',
-                                            marginTop: '4px',
+                                            marginTop: '6px',
                                             padding: '8px',
                                             background: '#f8fafc',
                                             borderRadius: '8px',
-                                            border: '1px solid #f1f5f9'
+                                            border: '1px solid #f1f5f9',
+                                            display: 'block'
                                         }}>
                                             {ev.details}
                                         </span>

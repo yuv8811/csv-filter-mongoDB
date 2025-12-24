@@ -63,6 +63,21 @@ const Filters = ({
                 />
             </div>
 
+            <div className="filter-group">
+                <label>Total Spent Sort</label>
+                <CustomDropdown
+                    name="totalSpentSort"
+                    value={filters.totalSpentSort}
+                    onChange={handleFilterChange}
+                    options={[
+                        { label: "Default", value: "" },
+                        { label: "Lowest First", value: "asc" },
+                        { label: "Highest First", value: "desc" }
+                    ]}
+                    placeholder="Default"
+                />
+            </div>
+
             <button onClick={resetFilters} className="reset-filters-btn">
                 Reset All Filters
             </button>

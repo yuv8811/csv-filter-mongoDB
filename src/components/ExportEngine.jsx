@@ -115,6 +115,20 @@ const ExportEngine = ({
                         placeholder="Default"
                     />
                 </div>
+                <div className="filter-group">
+                    <label>Sort by Total Spent</label>
+                    <CustomDropdown
+                        name="totalSpentSort"
+                        value={filters.totalSpentSort}
+                        onChange={handleFilterChange}
+                        options={[
+                            { label: "Default", value: "" },
+                            { label: "Lowest First", value: "asc" },
+                            { label: "Highest First", value: "desc" }
+                        ]}
+                        placeholder="Default"
+                    />
+                </div>
             </div>
 
             <div className="export-preview-card">

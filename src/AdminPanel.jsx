@@ -8,23 +8,23 @@ import DetailModal from "./components/DetailModal";
 
 export default function AdminPanel() {
     const [data, setData] = useState(null);
-    const [activeTab, setActiveTab] = useState("view"); // "view", "import", or "export"
+    const [activeTab, setActiveTab] = useState("view");
     const [currentPage, setCurrentPage] = useState(1);
     const [filters, setFilters] = useState({
         shopDomain: "",
         eventStatus: "",
         firstEventSort: "",
-        lastEventSort: ""
+        lastEventSort: "",
+        totalSpentSort: ""
     });
     const [exportFilters, setExportFilters] = useState({
         shopDomain: "",
-        eventStatus: [], // Array for multiple selection
+        eventStatus: [],
         firstEventSort: "",
-        lastEventSort: ""
+        lastEventSort: "",
+        totalSpentSort: ""
     });
-    const [showFilters, setShowFilters] = useState(false);
     const [selectedItem, setSelectedItem] = useState(null);
-    const filterRef = useRef(null);
 
     const itemsPerPage = 50;
     const navigate = useNavigate();
@@ -44,27 +44,85 @@ export default function AdminPanel() {
         fetchData();
     }, []);
 
-    useEffect(() => {
-        function handleClickOutside(event) {
-            if (filterRef.current && !filterRef.current.contains(event.target)) {
-                setShowFilters(false);
+    const safeParseDate = (d) => {
+        if (!d) return null;
+        let parsed = new Date(d);
+        if (!isNaN(parsed.getTime())) return parsed;
+
+        const parts = d.split(/[-/]/);
+        if (parts.length === 3) {
+            if (parts[2].length === 4) {
+                parsed = new Date(parts[2], parts[1] - 1, parts[0]);
+                if (!isNaN(parsed.getTime())) return parsed;
+            }
+            if (parts[0].length === 4) {
+                parsed = new Date(parts[0], parts[1] - 1, parts[2]);
+                if (!isNaN(parsed.getTime())) return parsed;
             }
         }
-        document.addEventListener("mousedown", handleClickOutside);
-        return () => document.removeEventListener("mousedown", handleClickOutside);
-    }, []);
+        return null;
+    };
 
-    const statuses = useMemo(() => {
-        if (!data) return [];
-        const set = new Set();
-        data.forEach(item => {
-            const events = item.additionalInfo?.length
-                ? item.additionalInfo
-                : [{ event: item.event }];
-            set.add(events[events.length - 1]?.event);
+    const countBillableMonths = (start, end) => {
+        if (!start || !end || start > end) return 0;
+
+        const startUTC = Date.UTC(start.getUTCFullYear(), start.getUTCMonth(), start.getUTCDate());
+        const endUTC = Date.UTC(end.getUTCFullYear(), end.getUTCMonth(), end.getUTCDate());
+
+        const msPerDay = 24 * 60 * 60 * 1000;
+        const diffDays = Math.floor((endUTC - startUTC) / msPerDay);
+
+        return Math.floor(diffDays / 30);
+    };
+
+    const calculateTotalSpent = (additionalInfo) => {
+        if (!additionalInfo || additionalInfo.length === 0) return { amount: 0, months: 0 };
+
+        let totalAmount = 0;
+        let totalMonths = 0;
+        let activePrice = 0;
+        let startDate = null;
+
+        const stopEvents = ["subscription charge canceled", "frozen", "store closed", "uninstalled", "declined"];
+
+        additionalInfo.forEach((ev) => {
+            const eventName = ev.event?.toLowerCase();
+            const bDate = safeParseDate(ev.billingDate);
+            const eDate = safeParseDate(ev.date);
+
+            if (eventName.includes("subscription charge activated")) {
+                const priceMatch = ev.details?.match(/\$(\d+(\.\d+)?)/);
+                if (priceMatch) {
+                    if (!bDate) return;
+
+                    if (startDate && activePrice > 0) {
+                        const periodMonths = countBillableMonths(startDate, bDate);
+                        totalAmount += periodMonths * activePrice;
+                        totalMonths += periodMonths;
+                    }
+                    activePrice = parseFloat(priceMatch[1]);
+                    startDate = bDate;
+                }
+            } else if (stopEvents.some(stop => eventName?.includes(stop))) {
+                if (startDate && activePrice > 0) {
+                    const effectiveEndDate = bDate || eDate || new Date();
+                    const periodMonths = countBillableMonths(startDate, effectiveEndDate);
+                    totalAmount += periodMonths * activePrice;
+                    totalMonths += periodMonths;
+                    startDate = null;
+                    activePrice = 0;
+                }
+            }
         });
-        return [...set].filter(Boolean).sort();
-    }, [data]);
+
+        if (startDate && activePrice > 0) {
+            const periodMonths = countBillableMonths(startDate, new Date());
+            totalAmount += periodMonths * activePrice;
+            totalMonths += periodMonths;
+        }
+
+        return { amount: totalAmount, months: totalMonths };
+    };
 
     const sortedAndFilteredData = useMemo(() => {
         if (!data) return [];
@@ -85,30 +143,62 @@ export default function AdminPanel() {
                 : (!activeFilters.eventStatus || lastEvent.event?.toLowerCase() === activeFilters.eventStatus.toLowerCase());
 
             return matchesDomain && matchesStatus;
+        }).map(item => {
+            const { amount, months } = calculateTotalSpent(item.additionalInfo);
+            const events = item.additionalInfo || [];
+
+            const getDisplayDate = (ev) => {
+                if (!ev) return "";
+                if (ev.event?.toLowerCase().includes("activate") && ev.billingDate) {
+                    return ev.billingDate;
+                }
+                return ev.date || "";
+            };
+
+            return {
+                ...item,
+                totalSpent: amount,
+                activeMonths: months,
+                firstEventDate: getDisplayDate(events[0]),
+                lastEventDate: getDisplayDate(events[events.length - 1]),
+                currentEvent: events[events.length - 1]?.event || ""
+            };
         });
 
-        const parseDate = (d) => {
-            const parsed = new Date(d);
-            return isNaN(parsed.getTime()) ? 0 : parsed.getTime();
+        const safeParseDate = (d) => {
+            if (!d) return 0;
+            let parsed = new Date(d);
+            if (!isNaN(parsed.getTime())) return parsed.getTime();
+
+            const parts = d.split(/[-/]/);
+            if (parts.length === 3) {
+                if (parts[2].length === 4) return new Date(parts[2], parts[1] - 1, parts[0]).getTime();
+                if (parts[0].length === 4) return new Date(parts[0], parts[1] - 1, parts[2]).getTime();
+            }
+            return 0;
         };
 
         if (activeFilters.firstEventSort) {
             result.sort((a, b) => {
-                const dateA = parseDate(a.date);
-                const dateB = parseDate(b.date);
+                const dateA = safeParseDate(a.firstEventDate);
+                const dateB = safeParseDate(b.firstEventDate);
                 return activeFilters.firstEventSort === "asc" ? dateA - dateB : dateB - dateA;
             });
         }
 
         if (activeFilters.lastEventSort) {
             result.sort((a, b) => {
-                const lastA = parseDate(a.additionalInfo?.length
-                    ? a.additionalInfo[a.additionalInfo.length - 1].date
-                    : a.date);
-                const lastB = parseDate(b.additionalInfo?.length
-                    ? b.additionalInfo[b.additionalInfo.length - 1].date
-                    : b.date);
-                return activeFilters.lastEventSort === "asc" ? lastA - lastB : lastB - lastA;
+                const dateA = safeParseDate(a.lastEventDate);
+                const dateB = safeParseDate(b.lastEventDate);
+                return activeFilters.lastEventSort === "asc" ? dateA - dateB : dateB - dateA;
+            });
+        }
+
+        if (activeFilters.totalSpentSort) {
+            result.sort((a, b) => {
+                return activeFilters.totalSpentSort === "asc"
+                    ? a.totalSpent - b.totalSpent
+                    : b.totalSpent - a.totalSpent;
             });
         }
         return result;
@@ -126,61 +216,69 @@ export default function AdminPanel() {
         setFilters(prev => ({
             ...prev,
             [name]: value,
-            ...(name === "firstEventSort" && value ? { lastEventSort: "" } : {}),
-            ...(name === "lastEventSort" && value ? { firstEventSort: "" } : {})
+            ...(name === "firstEventSort" && value ? { lastEventSort: "", totalSpentSort: "" } : {}),
+            ...(name === "lastEventSort" && value ? { firstEventSort: "", totalSpentSort: "" } : {}),
+            ...(name === "totalSpentSort" && value ? { firstEventSort: "", lastEventSort: "" } : {})
         }));
         setCurrentPage(1);
     };
 
     const handleExportFilterChange = (e) => {
         const { name, value, type, checked } = e.target;
-
-        if (name === "eventStatus") {
+        if (type === "checkbox") {
             setExportFilters(prev => {
-                const currentStatus = prev.eventStatus || [];
-                const newStatus = checked
-                    ? [...currentStatus, value]
-                    : currentStatus.filter(s => s !== value);
-                return { ...prev, eventStatus: newStatus };
+                const currentStatuses = prev.eventStatus;
+                if (checked) {
+                    return { ...prev, eventStatus: [...currentStatuses, value] };
+                } else {
+                    return { ...prev, eventStatus: currentStatuses.filter(s => s !== value) };
+                }
             });
         } else {
             setExportFilters(prev => ({
                 ...prev,
                 [name]: value,
-                ...(name === "firstEventSort" && value ? { lastEventSort: "" } : {}),
-                ...(name === "lastEventSort" && value ? { firstEventSort: "" } : {})
+                ...(name === "firstEventSort" && value ? { lastEventSort: "", totalSpentSort: "" } : {}),
+                ...(name === "lastEventSort" && value ? { firstEventSort: "", totalSpentSort: "" } : {}),
+                ...(name === "totalSpentSort" && value ? { firstEventSort: "", lastEventSort: "" } : {})
             }));
         }
     };
 
-    const handleExportStatusBulk = (action) => {
+    const handleExportStatusBulk = (shouldSelectAll) => {
         setExportFilters(prev => ({
             ...prev,
-            eventStatus: action === "all" ? [...statuses] : []
+            eventStatus: shouldSelectAll ? statuses : []
         }));
     };
 
     const resetFilters = () => {
-        if (activeTab === "view") {
-            setFilters({
-                shopDomain: "",
-                eventStatus: "",
-                firstEventSort: "",
-                lastEventSort: ""
-            });
-            setCurrentPage(1);
-        } else {
-            setExportFilters({
-                shopDomain: "",
-                eventStatus: [],
-                firstEventSort: "",
-                lastEventSort: ""
-            });
-        }
+        const defaultFilters = {
+            shopDomain: "",
+            eventStatus: activeTab === "export" ? [] : "",
+            firstEventSort: "",
+            lastEventSort: "",
+            totalSpentSort: ""
+        };
+        if (activeTab === "view") setFilters(defaultFilters);
+        else setExportFilters(defaultFilters);
+        setCurrentPage(1);
     };
 
+    const statuses = useMemo(() => {
+        if (!data) return [];
+        const set = new Set();
+        data.forEach(item => {
+            const events = item.additionalInfo?.length
+                ? item.additionalInfo
+                : [{ event: item.event }];
+            set.add(events[events.length - 1]?.event);
+        });
+        return [...set].filter(Boolean).sort();
+    }, [data]);
+
     const exportToCSV = () => {
-        const headers = ["Shop Domain", "Shop Name", "Shop Country", "Shop Email", "Latest Status", "First Event Date", "Last Event Date"];
+        const headers = ["Shop Domain", "Shop Name", "Shop Country", "Shop Email", "Latest Status", "First Event Date", "Last Event Date", "Total Spent", "Active Months"];
         const csvRows = [
             headers.join(","),
             ...sortedAndFilteredData.map(item => {
@@ -193,11 +291,14 @@ export default function AdminPanel() {
                     item.shopEmail,
                     lastEvent.event,
                     item.date,
-                    lastEvent.date
+                    lastEvent.date,
+                    item.totalSpent.toFixed(2),
+                    item.activeMonths
                 ].map(val => `"${(val || "").toString().replace(/"/g, '""')}"`).join(",");
             })
         ];
-        const blob = new Blob([csvRows.join("\n")], { type: "text/csv;charset=utf-8;" });
+
+        const blob = new Blob([csvRows.join("\n")], { type: "text/csv" });
         const url = URL.createObjectURL(blob);
         const link = document.createElement("a");
         link.setAttribute("href", url);
@@ -233,9 +334,6 @@ export default function AdminPanel() {
                         handleFilterChange={handleFilterChange}
                         statuses={statuses}
                         resetFilters={resetFilters}
-                        showFilters={showFilters}
-                        setShowFilters={setShowFilters}
-                        filterRef={filterRef}
                         currentPage={currentPage}
                         totalPages={totalPages}
                         handlePageChange={setCurrentPage}
