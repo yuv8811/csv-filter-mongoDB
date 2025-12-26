@@ -1,4 +1,4 @@
-require('dotenv').config();
+
 const express = require("express");
 const mongoose = require("mongoose");
 const multer = require("multer");
@@ -50,7 +50,7 @@ const CsvSchema = new mongoose.Schema({
 const CsvData = mongoose.model("csvdatas", CsvSchema);
 
 const AccessTokenSchema = new mongoose.Schema({
-    "Access Token": String
+    "Access token": String
 }, { collection: 'accessToken', versionKey: false });
 
 const AccessToken = mongoose.model("AccessToken", AccessTokenSchema);
@@ -187,9 +187,8 @@ app.get("/shopify/metafields", async (req, res) => {
     const { shop } = req.query;
     if (!shop) return res.status(400).json({ error: "Shop domain is required" });
 
-    // Fetch access token from MongoDB
     const tokenDoc = await AccessToken.findOne();
-    const accessToken = tokenDoc ? tokenDoc["Access Token"] : process.env.SHOPIFY_ACCESS_TOKEN;
+    const accessToken = tokenDoc ? tokenDoc["Access token"] : null;
 
     const query = `
         {
