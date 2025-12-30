@@ -1,4 +1,4 @@
-const Sidebar = ({ activeTab, setActiveTab }) => {
+const Sidebar = ({ activeTab, setActiveTab, onLogout }) => {
     return (
         <aside className="admin-sidebar">
             <div className="sidebar-header">
@@ -53,16 +53,18 @@ const Sidebar = ({ activeTab, setActiveTab }) => {
                     Metafield Search
                 </button>
                 <button
-                    className={`tab-button ${activeTab === "login" ? "active" : ""}`}
-                    onClick={() => setActiveTab("login")}
+                    className="tab-button logout-button"
+                    onClick={onLogout}
+                    style={{ marginTop: 'auto' }}
                 >
                     <svg width="24" height="24" viewBox="0 0 24 24"
-                        fill="none" stroke="currentColor" stroke-width="2"
-                        stroke-linecap="round" stroke-linejoin="round">
-                        <circle cx="12" cy="7" r="4" />
-                        <path d="M5.5 21c1.5-4 11.5-4 13 0" />
+                        fill="none" stroke="currentColor" strokeWidth="2"
+                        strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                        <polyline points="16 17 21 12 16 7" />
+                        <line x1="21" y1="12" x2="9" y2="12" />
                     </svg>
-                    Login
+                    Logout
                 </button>
             </nav>
         </aside>

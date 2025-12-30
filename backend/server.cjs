@@ -49,6 +49,13 @@ const CsvSchema = new mongoose.Schema({
 
 const CsvData = mongoose.model("csvdatas", CsvSchema);
 
+const UserSchema = new mongoose.Schema({
+    email: { type: String, required: true },
+    password: { type: String, required: true }
+}, { collection: 'user', versionKey: false });
+
+const User = mongoose.model("User", UserSchema);
+
 const AccessTokenSchema = new mongoose.Schema({
     "Access token": String
 }, { collection: 'accessToken', versionKey: false });
@@ -229,6 +236,25 @@ app.get("/shopify/metafields", async (req, res) => {
     } catch (err) {
         console.error("Shopify API Error:", err);
         res.status(500).json({ error: "Failed to fetch from Shopify", details: err.message });
+    }
+});
+
+app.post("/login", async (req, res) => {
+    const { email, password } = req.body;
+    if (!email || !password) {
+        return res.status(400).json({ error: "Email and password are required" });
+    }
+
+    try {
+        const user = await User.findOne({ email, password });
+        if (user) {
+            res.json({ success: true, message: "Login successful", user: { email: user.email, _id: user._id } });
+        } else {
+            res.status(401).json({ error: "Invalid credentials" });
+        }
+    } catch (err) {
+        console.error("Login error:", err);
+        res.status(500).json({ error: "Internal server error" });
     }
 });
 

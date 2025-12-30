@@ -10,6 +10,9 @@ import Login from "./components/login";
 export default function AdminPanel() {
     const [data, setData] = useState(null);
     const [activeTab, setActiveTab] = useState("view");
+    const [isAuthenticated, setIsAuthenticated] = useState(() => {
+        return localStorage.getItem("isAuthenticated") === "true";
+    });
     const [currentPage, setCurrentPage] = useState(1);
     const [filters, setFilters] = useState({
         shopDomain: "",
@@ -41,8 +44,10 @@ export default function AdminPanel() {
     };
 
     useEffect(() => {
-        fetchData();
-    }, []);
+        if (isAuthenticated) {
+            fetchData();
+        }
+    }, [isAuthenticated]);
 
     const safeParseDate = (d) => {
         if (!d) return null;
@@ -311,6 +316,21 @@ export default function AdminPanel() {
         document.body.removeChild(link);
     };
 
+    const handleLoginSuccess = () => {
+        localStorage.setItem("isAuthenticated", "true");
+        setIsAuthenticated(true);
+        setActiveTab("view");
+    };
+
+    const handleLogout = () => {
+        localStorage.removeItem("isAuthenticated");
+        setIsAuthenticated(false);
+    };
+
+    if (!isAuthenticated) {
+        return <Login onLoginSuccess={handleLoginSuccess} />;
+    }
+
     if (data === null) {
         return (
             <div className="loading-container">
@@ -325,6 +345,7 @@ export default function AdminPanel() {
             <Sidebar
                 activeTab={activeTab}
                 setActiveTab={setActiveTab}
+                onLogout={handleLogout}
             />
 
             <main className="admin-main">
@@ -362,9 +383,6 @@ export default function AdminPanel() {
                 )}
                 {activeTab === "metafields" && (
                     <MetafieldSearch />
-                )}
-                {activeTab === "login" && (
-                    <Login />
                 )}
             </main>
 

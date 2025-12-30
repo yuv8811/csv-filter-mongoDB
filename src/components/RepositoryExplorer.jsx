@@ -131,11 +131,6 @@ const RepositoryExplorer = ({
                                     </td>
                                     <td style={{ color: 'var(--text-muted)', fontFamily: 'monospace' }}>
                                         {item.firstEventDate}
-                                        {item.additionalInfo?.[0]?.details && (
-                                            <div style={{ fontSize: '0.65rem', color: '#64748b', fontWeight: 400, marginTop: '2px', fontFamily: 'sans-serif' }}>
-                                                {item.additionalInfo[0].details}
-                                            </div>
-                                        )}
                                     </td>
                                     <td style={{ color: 'var(--text-muted)', fontFamily: 'monospace' }}>{item.lastEventDate}</td>
                                     <td style={{ textAlign: 'right' }}>
