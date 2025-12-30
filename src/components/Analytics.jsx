@@ -101,7 +101,7 @@ const Analytics = ({ data }) => {
             return { statusDistribution: [], bumpChartData: [], pieChartData: [] };
         }
 
-        const allowedStatuses = ['uninstalled', 'store closed', 'installed'];
+        const allowedStatuses = ['uninstalled', 'store closed', 'installed', 'subscription charge activated'];
         const statusCounts = {};
         const timeStatusMap = {};
         const allMonths = new Set();
@@ -118,7 +118,20 @@ const Analytics = ({ data }) => {
         }
 
         chartData.forEach(item => {
-            const status = item.currentEvent || "Unknown";
+            // Determine status based on the LAST event in the filtered range
+            // item.additionalInfo is already filtered by date range in filteredAnalyticsData
+            const eventsInRange = item.additionalInfo || [];
+
+            // Sort events by date descending to find the latest one
+            const sortedEvents = [...eventsInRange].sort((a, b) => {
+                const dateA = safeParseDate(a.date);
+                const dateB = safeParseDate(b.date);
+                return dateB - dateA;
+            });
+
+            // Use the latest event in range, or fallback to item.currentEvent if no events in range (though filteredAnalyticsData usually filters those out)
+            const latestEvent = sortedEvents.length > 0 ? sortedEvents[0].event : (item.currentEvent || "Unknown");
+            const status = latestEvent || "Unknown";
 
             if (!allowedStatuses.includes(status.toLowerCase())) {
                 return;
@@ -127,8 +140,8 @@ const Analytics = ({ data }) => {
             statusCounts[status] = (statusCounts[status] || 0) + 1;
             allStatuses.add(status);
 
-            const events = item.additionalInfo || [];
-            events.forEach(event => {
+            // Populate timeStatusMap for the Bump Chart (Timeline)
+            eventsInRange.forEach(event => {
                 const dateObj = safeParseDate(event.date);
                 if (!dateObj) return;
 
@@ -280,7 +293,7 @@ const Analytics = ({ data }) => {
                         padding={0.4}
                         valueScale={{ type: 'linear' }}
                         indexScale={{ type: 'band', round: true }}
-                        colors={['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6']}
+                        colors={['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#6366f1']}
                         colorBy="indexValue"
                         borderRadius={4}
                         borderColor={{ from: 'color', modifiers: [['darker', 1.6]] }}

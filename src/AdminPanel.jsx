@@ -394,7 +394,7 @@ export default function AdminPanel() {
                     />
                 )}
                 {activeTab === "analytics" && (
-                    <Analytics data={sortedAndFilteredData} />
+                    <Analytics data={data} />
                 )}
                 {activeTab === "metafields" && (
                     <MetafieldSearch />
