@@ -5,7 +5,9 @@ import ExportEngine from "./components/ExportEngine";
 import Upload from "./components/Upload";
 import DetailModal from "./components/DetailModal";
 import MetafieldSearch from "./components/MetafieldSearch";
+import Analytics from "./components/Analytics";
 import Login from "./components/login";
+import { safeParseDate } from "./utils/helpers";
 
 export default function AdminPanel() {
     const [data, setData] = useState(null);
@@ -97,24 +99,7 @@ export default function AdminPanel() {
         }
     }, [isAuthenticated]);
 
-    const safeParseDate = (d) => {
-        if (!d) return null;
-        let parsed = new Date(d);
-        if (!isNaN(parsed.getTime())) return parsed;
 
-        const parts = d.split(/[-/]/);
-        if (parts.length === 3) {
-            if (parts[2].length === 4) {
-                parsed = new Date(parts[2], parts[1] - 1, parts[0]);
-                if (!isNaN(parsed.getTime())) return parsed;
-            }
-            if (parts[0].length === 4) {
-                parsed = new Date(parts[0], parts[1] - 1, parts[2]);
-                if (!isNaN(parsed.getTime())) return parsed;
-            }
-        }
-        return null;
-    };
 
     const countBillableMonths = (start, end) => {
         if (!start || !end || start > end) return 0;
@@ -179,7 +164,7 @@ export default function AdminPanel() {
 
     const sortedAndFilteredData = useMemo(() => {
         if (!data) return [];
-        const activeFilters = activeTab === "view" ? filters : exportFilters;
+        const activeFilters = activeTab === "export" ? exportFilters : filters;
 
         let result = data.filter(item => {
             const events = item.additionalInfo?.length
@@ -216,18 +201,7 @@ export default function AdminPanel() {
             };
         });
 
-        const safeParseDate = (d) => {
-            if (!d) return 0;
-            let parsed = new Date(d);
-            if (!isNaN(parsed.getTime())) return parsed.getTime();
 
-            const parts = d.split(/[-/]/);
-            if (parts.length === 3) {
-                if (parts[2].length === 4) return new Date(parts[2], parts[1] - 1, parts[0]).getTime();
-                if (parts[0].length === 4) return new Date(parts[0], parts[1] - 1, parts[2]).getTime();
-            }
-            return 0;
-        };
 
         if (activeFilters.firstEventSort) {
             result.sort((a, b) => {
@@ -418,6 +392,9 @@ export default function AdminPanel() {
                         recordCount={sortedAndFilteredData.length}
                         onExport={exportToCSV}
                     />
+                )}
+                {activeTab === "analytics" && (
+                    <Analytics data={sortedAndFilteredData} />
                 )}
                 {activeTab === "metafields" && (
                     <MetafieldSearch />

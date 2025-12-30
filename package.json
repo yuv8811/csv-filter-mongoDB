@@ -12,15 +12,21 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@nivo/bar": "^0.99.0",
+    "@nivo/bump": "^0.99.0",
+    "@nivo/core": "^0.99.0",
+    "@nivo/line": "^0.99.0",
+    "@nivo/pie": "^0.99.0",
     "cors": "^2.8.5",
     "csv-parser": "^3.2.0",
+    "d3": "^7.9.0",
     "dotenv": "^17.2.3",
     "express": "^5.2.1",
     "mongoose": "^9.0.2",
     "multer": "^2.0.2",
     "nodemon": "^3.1.11",
-    "react": "^19.2.0",
-    "react-dom": "^19.2.0",
+    "react": "^19.2.3",
+    "react-dom": "^19.2.3",
     "react-router-dom": "^7.11.0"
   },
   "devDependencies": {

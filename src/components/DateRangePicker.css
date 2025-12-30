@@ -1,0 +1,209 @@
+/* Modern Sleek DatePicker Styles */
+.date-picker-container {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    padding: 24px;
+    width: 360px;
+    position: absolute;
+    top: calc(100% + 12px);
+    right: 0;
+    z-index: 50;
+    animation: fadeInScale 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    font-family: 'Inter', system-ui, sans-serif;
+}
+
+@keyframes fadeInScale {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.calendar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.month-year-label {
+    font-size: 15px;
+    font-weight: 600;
+    color: #0f172a;
+    letter-spacing: -0.01em;
+}
+
+.nav-button {
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: #64748b;
+    transition: all 0.2s ease;
+}
+
+.nav-button:hover {
+    border-color: #cbd5e1;
+    color: #0f172a;
+    background: #f8fafc;
+}
+
+.weekdays-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    text-align: center;
+    margin-bottom: 12px;
+}
+
+.weekday-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.days-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    row-gap: 4px;
+    /* Tighter gap */
+}
+
+/* Base Day Cell */
+.day-cell {
+    height: 48px;
+    /* Square-ish */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    cursor: pointer;
+    position: relative;
+    color: #334155;
+    font-weight: 500;
+    border-radius: 8px;
+    /* Soft square */
+    transition: all 0.15s ease;
+    user-select: none;
+    margin: 1px;
+}
+
+.day-cell.empty {
+    cursor: default;
+    background: transparent;
+}
+
+/* Hover state */
+.day-cell:not(.empty):not(.selected):not(.range-start):not(.range-end):not(.in-range):hover {
+    background-color: #f1f5f9;
+    color: #0f172a;
+}
+
+/* Range Middle */
+.day-cell.in-range {
+    background-color: #f1f5f9;
+    /* Subtle grey/blue for range */
+    color: #0f172a;
+    border-radius: 0;
+    /* Continuous block feel */
+    font-weight: 500;
+}
+
+/* Selected Start/End */
+.day-cell.range-start {
+    background-color: #0f172a;
+    /* Slate-900 / Black */
+    color: white;
+    border-radius: 8px 0 0 8px;
+    /* Rounded left side */
+    position: relative;
+    z-index: 2;
+    font-weight: 600;
+}
+
+.day-cell.range-end {
+    background-color: #0f172a;
+    /* Slate-900 / Black */
+    color: white;
+    border-radius: 0 8px 8px 0;
+    /* Rounded right side */
+    position: relative;
+    z-index: 2;
+    font-weight: 600;
+}
+
+/* Single day selected */
+.day-cell.range-start.range-end {
+    border-radius: 8px;
+    /* Full rounded square */
+}
+
+/* Edge cases for grid rows */
+/* If start is at end of row, round right side too */
+.days-grid>.day-cell.range-start:nth-child(7n) {
+    border-radius: 8px;
+}
+
+/* If end is at start of row, round left side too */
+.days-grid>.day-cell.range-end:nth-child(7n+1) {
+    border-radius: 8px;
+}
+
+/* If in-range is at start of row */
+.days-grid>.day-cell.in-range:nth-child(7n+1) {
+    border-top-left-radius: 8px;
+    border-bottom-left-radius: 8px;
+}
+
+/* If in-range is at end of row */
+.days-grid>.day-cell.in-range:nth-child(7n) {
+    border-top-right-radius: 8px;
+    border-bottom-right-radius: 8px;
+}
+
+/* Pseudo elements removed as we use box shapes now */
+.day-cell.range-start::after,
+.day-cell.range-end::after {
+    display: none;
+}
+
+/* Footer */
+.picker-footer {
+    margin-top: 24px;
+    padding-top: 16px;
+    border-top: 1px solid #e2e8f0;
+    display: flex;
+    justify-content: center;
+}
+
+.selected-date-display {
+    background: white;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #0f172a;
+    border: 1px solid #e2e8f0;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.arrow-separator {
+    color: #cbd5e1;
+    font-weight: 400;
+}
