@@ -1014,7 +1014,7 @@ body {
 
 .detail-sheet {
     width: 95%;
-    max-width: 520px;
+    max-width: 850px;
     background: #ffffff;
     border-radius: 28px;
     box-shadow: 0 40px 80px -20px rgba(0, 0, 0, 0.2);

@@ -187,7 +187,6 @@ export default function AdminPanel() {
 
             const getDisplayDate = (ev) => {
                 if (!ev) return "";
-                // Use the actual event date for display to ensure "First Seen" is accurate
                 return ev.date || "";
             };
 

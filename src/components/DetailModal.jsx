@@ -97,41 +97,62 @@ const DetailModal = ({ item, onClose }) => {
                     <span className="section-label">
                         {activeTab === "all" ? "COMPLETE EVENT LOG" : "SUBSCRIPTION RELATED EVENTS"}
                     </span>
-                    <div className="activity-stack">
-                        {displayEvents.length > 0 ? (
-                            displayEvents.slice().reverse().map((ev, idx) => (
-                                <div key={idx} className="activity-card-elite">
-                                    <div className="activity-main-info">
-                                        <span className="activity-primary-text">{ev.event}</span>
-                                        <span className="activity-secondary-text">{ev.date}</span>
-                                        {ev.billingDate && (
-                                            <div style={{ fontSize: '0.7rem', color: 'var(--primary)', marginTop: '4px', fontWeight: 600 }}>
-                                                Billing Date: {ev.billingDate}
-                                            </div>
-                                        )}
-                                        {ev.details && (
-                                            <span className="activity-details-text" style={{
-                                                fontSize: '0.75rem',
-                                                color: '#64748b',
-                                                marginTop: '6px',
-                                                padding: '8px',
-                                                background: '#f8fafc',
-                                                borderRadius: '8px',
-                                                border: '1px solid #f1f5f9',
-                                                display: 'block'
-                                            }}>
-                                                {ev.details}
-                                            </span>
-                                        )}
-                                    </div>
-                                    {activeTab === "all" && idx === 0 && <div className="activity-badge-minimal">Latest</div>}
-                                </div>
-                            ))
-                        ) : (
-                            <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)' }}>
-                                No subscription events found.
-                            </div>
-                        )}
+                    <div className="table-wrapper" style={{ padding: '0 1.5rem 2rem' }}>
+                        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
+                            <thead>
+                                <tr style={{ borderBottom: '1px solid #e2e8f0' }}>
+                                    <th style={{ padding: '12px 8px', textAlign: 'left', fontWeight: 600, color: '#64748b', width: '35%' }}>Event</th>
+                                    <th style={{ padding: '12px 8px', textAlign: 'left', fontWeight: 600, color: '#64748b', width: '25%' }}>Date</th>
+                                    <th style={{ padding: '12px 8px', textAlign: 'left', fontWeight: 600, color: '#64748b', width: '40%' }}>Details</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {displayEvents.length > 0 ? (
+                                    displayEvents.slice().reverse().map((ev, idx) => (
+                                        <tr key={idx} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                                            <td style={{ padding: '16px 8px', verticalAlign: 'top' }}>
+                                                <div style={{ fontWeight: 500, color: '#1e293b' }}>{ev.event}</div>
+                                                {activeTab === "all" && idx === 0 && (
+                                                    <span style={{
+                                                        fontSize: '0.7rem',
+                                                        padding: '2px 8px',
+                                                        borderRadius: '12px',
+                                                        background: '#232323ff',
+                                                        color: '#ffffffff',
+                                                        marginTop: '6px',
+                                                        display: 'inline-block',
+                                                        fontWeight: 600
+                                                    }}>
+                                                        Latest
+                                                    </span>
+                                                )}
+                                            </td>
+                                            <td style={{ padding: '16px 8px', verticalAlign: 'top', color: '#475569' }}>
+                                                <div>{ev.date}</div>
+                                                {ev.billingDate && (
+                                                    <div style={{ fontSize: '0.75rem', color: '#6366f1', marginTop: '4px' }}>
+                                                        Bill: {ev.billingDate}
+                                                    </div>
+                                                )}
+                                            </td>
+                                            <td style={{ padding: '16px 8px', verticalAlign: 'top', color: '#64748b', fontSize: '0.8125rem', lineHeight: '1.5' }}>
+                                                {ev.details ? (
+                                                    <div style={{ background: '#f8fafc', padding: '8px', borderRadius: '6px' }}>
+                                                        {ev.details}
+                                                    </div>
+                                                ) : "-"}
+                                            </td>
+                                        </tr>
+                                    ))
+                                ) : (
+                                    <tr>
+                                        <td colSpan="3" style={{ textAlign: 'center', padding: '3rem', color: '#94a3b8' }}>
+                                            No events found matching criteria.
+                                        </td>
+                                    </tr>
+                                )}
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>

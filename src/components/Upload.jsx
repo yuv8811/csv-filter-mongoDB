@@ -126,9 +126,6 @@ function Upload({ onSuccess }) {
                                 </svg>
                                 <h2 style={{ fontSize: '1.25rem', margin: 0 }}>Upload Complete</h2>
                             </div>
-                            <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', background: '#f1f5f9', padding: '2px 8px', borderRadius: '4px' }}>
-                                v{result.serverVersion || '1.0'}
-                            </span>
                         </div>
 
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>

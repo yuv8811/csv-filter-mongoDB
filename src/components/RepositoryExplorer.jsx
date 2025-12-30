@@ -50,8 +50,8 @@ const RepositoryExplorer = ({
                             <th>Shop Domain</th>
                             <th>Status</th>
                             <th>Total Spent</th>
-                            <th>First Seen</th>
-                            <th>Last Activity</th>
+                            <th>Created On</th>
+                            <th>Updated On</th>
                             <th style={{ textAlign: 'right' }}>Actions</th>
                         </tr>
                     </thead>
