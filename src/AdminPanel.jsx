@@ -11,9 +11,57 @@ export default function AdminPanel() {
     const [data, setData] = useState(null);
     const [activeTab, setActiveTab] = useState("view");
     const [isAuthenticated, setIsAuthenticated] = useState(() => {
-        return localStorage.getItem("isAuthenticated") === "true";
+        const auth = localStorage.getItem("isAuthenticated") === "true";
+        const timestamp = localStorage.getItem("loginTimestamp");
+        const twelveHours = 12 * 60 * 60 * 1000;
+
+        if (auth && timestamp) {
+            const now = new Date().getTime();
+            if (now - parseInt(timestamp, 10) < twelveHours) {
+                return true;
+            }
+        }
+        // If we get here, it's either not auth or expired
+        localStorage.removeItem("isAuthenticated");
+        localStorage.removeItem("loginTimestamp");
+        return false;
     });
+
+    const handleLogout = () => {
+        localStorage.removeItem("isAuthenticated");
+        localStorage.removeItem("loginTimestamp");
+        setIsAuthenticated(false);
+    };
+
+    useEffect(() => {
+        if (!isAuthenticated) return;
+
+        const checkAuth = () => {
+            const timestamp = localStorage.getItem("loginTimestamp");
+            const twelveHours = 12 * 60 * 60 * 1000;
+            const now = new Date().getTime();
+
+            if (!timestamp || (now - parseInt(timestamp, 10) > twelveHours)) {
+                handleLogout(); // Expired or missing timestamp -> logout
+            }
+        };
+
+        const interval = setInterval(checkAuth, 60 * 1000); // Check every minute
+        return () => clearInterval(interval);
+    }, [isAuthenticated]);
+
+    // ... (existing state definitions) ...
     const [currentPage, setCurrentPage] = useState(1);
+    // ...
+
+    // ... (near the end of the file) ...
+
+    const handleLoginSuccess = () => {
+        localStorage.setItem("isAuthenticated", "true");
+        localStorage.setItem("loginTimestamp", new Date().getTime().toString());
+        setIsAuthenticated(true);
+        setActiveTab("view");
+    };
     const [filters, setFilters] = useState({
         shopDomain: "",
         eventStatus: "",
@@ -316,16 +364,6 @@ export default function AdminPanel() {
         document.body.removeChild(link);
     };
 
-    const handleLoginSuccess = () => {
-        localStorage.setItem("isAuthenticated", "true");
-        setIsAuthenticated(true);
-        setActiveTab("view");
-    };
-
-    const handleLogout = () => {
-        localStorage.removeItem("isAuthenticated");
-        setIsAuthenticated(false);
-    };
 
     if (!isAuthenticated) {
         return <Login onLoginSuccess={handleLoginSuccess} />;
