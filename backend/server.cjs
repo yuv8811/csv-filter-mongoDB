@@ -1,5 +1,6 @@
 
 const express = require("express");
+require("dotenv").config();
 const mongoose = require("mongoose");
 const multer = require("multer");
 const csv = require("csv-parser");
@@ -10,7 +11,7 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
-const mongoURI = "mongodb://localhost:27017/csv-filter";
+const mongoURI = process.env.MONGO_URI;
 
 const connectDB = async (retryCount = 5) => {
     try {
