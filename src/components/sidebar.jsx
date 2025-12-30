@@ -4,7 +4,6 @@ const Sidebar = ({ activeTab, setActiveTab }) => {
             <div className="sidebar-header">
                 <div className="sidebar-brand">
                     <h2>Admin Panel</h2>
-                    <p>CSV Streamliner</p>
                 </div>
             </div>
 
@@ -52,6 +51,18 @@ const Sidebar = ({ activeTab, setActiveTab }) => {
                         <line x1="8" y1="11" x2="14" y2="11" />
                     </svg>
                     Metafield Search
+                </button>
+                <button
+                    className={`tab-button ${activeTab === "login" ? "active" : ""}`}
+                    onClick={() => setActiveTab("login")}
+                >
+                    <svg width="24" height="24" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="7" r="4" />
+                        <path d="M5.5 21c1.5-4 11.5-4 13 0" />
+                    </svg>
+                    Login
                 </button>
             </nav>
         </aside>

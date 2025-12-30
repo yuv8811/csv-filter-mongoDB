@@ -5,6 +5,7 @@ import ExportEngine from "./components/ExportEngine";
 import Upload from "./components/Upload";
 import DetailModal from "./components/DetailModal";
 import MetafieldSearch from "./components/MetafieldSearch";
+import Login from "./components/login";
 
 export default function AdminPanel() {
     const [data, setData] = useState(null);
@@ -361,6 +362,9 @@ export default function AdminPanel() {
                 )}
                 {activeTab === "metafields" && (
                     <MetafieldSearch />
+                )}
+                {activeTab === "login" && (
+                    <Login />
                 )}
             </main>
 

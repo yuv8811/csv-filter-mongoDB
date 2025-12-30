@@ -84,7 +84,7 @@ function Upload({ onSuccess }) {
         <div className="app-container">
             <div className="upload-card">
                 <header className="header">
-                    <h1>CSV Streamliner</h1>
+                    <h1>Upload CSV</h1>
                     <p>Organize, filter, and transform your data in seconds.</p>
                 </header>
 
