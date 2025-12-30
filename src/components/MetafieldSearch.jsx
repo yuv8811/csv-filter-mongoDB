@@ -6,7 +6,7 @@ const MetafieldSearch = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [shopInfo, setShopInfo] = useState(null);
-    const [searchQuery, setSearchQuery] = useState('');
+
     const [expandedRows, setExpandedRows] = useState(new Set());
 
     const fetchMetafields = async () => {
@@ -57,13 +57,7 @@ const MetafieldSearch = () => {
         setExpandedRows(newExpanded);
     };
 
-    const filtered = metafields.filter(mf =>
-        mf.namespace === "customer_dashboard" && (
-            mf.key.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            mf.namespace.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            mf.value.toLowerCase().includes(searchQuery.toLowerCase())
-        )
-    );
+    const filtered = metafields.filter(mf => mf.namespace === "customer_dashboard");
 
 
     const MetafieldValue = ({ mf }) => {
@@ -183,18 +177,7 @@ const MetafieldSearch = () => {
                 </div>
             )}
 
-            <div className="filter-bar">
-                <div className="modern-input-wrapper search">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
-                    <input
-                        type="text"
-                        placeholder="Filter by key, namespace, or value..."
-                        className="modern-input"
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                    />
-                </div>
-            </div>
+
 
             <div className="table-responsive-elite">
                 <table className="custom-table minimal">
@@ -296,10 +279,7 @@ const MetafieldSearch = () => {
                 .modern-input-wrapper {
                     width: 250px;
                 }
-                .filter-bar .modern-input-wrapper {
-                    width: 100%;
-                    margin-bottom: 20px;
-                }
+
                 .shop-details-minimal {
                     display: flex;
                     gap: 40px;
