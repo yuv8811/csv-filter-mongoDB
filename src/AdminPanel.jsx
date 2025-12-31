@@ -368,8 +368,6 @@ export default function AdminPanel() {
             eventStatus: isExport ? [] : "",
             firstEventSort: "",
             lastEventSort: "",
-            firstEventSort: "",
-            lastEventSort: "",
             planPriceSort: ""
         };
         if (!isExport) setFilters(defaultFilters);

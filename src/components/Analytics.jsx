@@ -187,13 +187,48 @@ const Analytics = ({ data }) => {
 
     const filteredMainData = useMemo(() => filterData(data, mainStartDate, mainEndDate), [data, mainStartDate, mainEndDate]);
     const filteredSubData = useMemo(() => filterData(data, subStartDate, subEndDate), [data, subStartDate, subEndDate]);
+    // Helper for empty bump data
+    const getEmptyBumpData = (startStr, endStr) => {
+        let start = startStr ? new Date(startStr) : null;
+        let end = endStr ? new Date(endStr) : null;
+
+        if (!start || !end) {
+            const now = new Date();
+            end = new Date();
+            start = new Date();
+            start.setDate(now.getDate() - 30);
+        }
+
+        const diffTime = Math.abs(end - start);
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        const useDaily = diffDays < 60;
+
+        const dummyMonths = [];
+        let current = new Date(start);
+        // Safety break to prevent infinite loops if dates are weird
+        let iterations = 0;
+        while (current <= end && iterations < 1000) {
+            let timeKey;
+            if (useDaily) {
+                timeKey = current.toISOString().split('T')[0];
+                current.setDate(current.getDate() + 1);
+            } else {
+                timeKey = `${current.getFullYear()}-${String(current.getMonth() + 1).padStart(2, '0')}`;
+                current.setMonth(current.getMonth() + 1);
+            }
+            if (!dummyMonths.includes(timeKey)) dummyMonths.push(timeKey);
+            iterations++;
+        }
+        return [{
+            id: "No Data",
+            data: dummyMonths.map(m => ({ x: m, y: 1 }))
+        }];
+    };
+
     const { statusDistribution, bumpChartData, pieChartData } = useMemo(() => {
         const chartData = filteredMainData || [];
 
-        if (chartData.length === 0) {
-            return { statusDistribution: [], bumpChartData: [], pieChartData: [] };
-        }
-
+        // Define statuses first
         const allowedStatuses = ['uninstalled', 'store closed', 'installed', 'subscription charge activated'];
         const statusCounts = {};
         const timeStatusMap = {};
@@ -209,41 +244,43 @@ const Analytics = ({ data }) => {
             if (diffDays < 60) useDaily = true;
         }
 
-        chartData.forEach(item => {
-            const eventsInRange = item.additionalInfo || [];
-            // Sort events by date descending to find the latest
-            const sortedEvents = [...eventsInRange].sort((a, b) => {
-                const dateA = safeParseDate(a.date);
-                const dateB = safeParseDate(b.date);
-                return dateB - dateA;
-            });
+        // Process Data if it exists
+        if (chartData.length > 0) {
+            chartData.forEach(item => {
+                const eventsInRange = item.additionalInfo || [];
+                const sortedEvents = [...eventsInRange].sort((a, b) => {
+                    const dateA = safeParseDate(a.date);
+                    const dateB = safeParseDate(b.date);
+                    return dateB - dateA;
+                });
 
-            const latestEvent = sortedEvents.length > 0 ? sortedEvents[0].event : (item.currentEvent || "Unknown");
-            const status = latestEvent || "Unknown";
+                const latestEvent = sortedEvents.length > 0 ? sortedEvents[0].event : (item.currentEvent || "Unknown");
+                const status = latestEvent || "Unknown";
 
-            if (!allowedStatuses.includes(status.toLowerCase())) return;
-
-            statusCounts[status] = (statusCounts[status] || 0) + 1;
-            allStatuses.add(status);
-
-            eventsInRange.forEach(event => {
-                const dateObj = safeParseDate(event.date);
-                if (!dateObj) return;
-                const evStatus = event.event || "Unknown";
-                if (!allowedStatuses.includes(evStatus.toLowerCase())) return;
-
-                let timeKey;
-                if (useDaily) {
-                    timeKey = dateObj.toISOString().split('T')[0];
-                } else {
-                    timeKey = `${dateObj.getFullYear()}-${String(dateObj.getMonth() + 1).padStart(2, '0')}`;
+                if (allowedStatuses.includes(status.toLowerCase())) {
+                    statusCounts[status] = (statusCounts[status] || 0) + 1;
+                    allStatuses.add(status);
                 }
-                allMonths.add(timeKey);
-                if (!timeStatusMap[timeKey]) timeStatusMap[timeKey] = {};
-                timeStatusMap[timeKey][evStatus] = (timeStatusMap[timeKey][evStatus] || 0) + 1;
-                allStatuses.add(evStatus);
+
+                eventsInRange.forEach(event => {
+                    const dateObj = safeParseDate(event.date);
+                    if (!dateObj) return;
+                    const evStatus = event.event || "Unknown";
+                    if (!allowedStatuses.includes(evStatus.toLowerCase())) return;
+
+                    let timeKey;
+                    if (useDaily) {
+                        timeKey = dateObj.toISOString().split('T')[0];
+                    } else {
+                        timeKey = `${dateObj.getFullYear()}-${String(dateObj.getMonth() + 1).padStart(2, '0')}`;
+                    }
+                    allMonths.add(timeKey);
+                    if (!timeStatusMap[timeKey]) timeStatusMap[timeKey] = {};
+                    timeStatusMap[timeKey][evStatus] = (timeStatusMap[timeKey][evStatus] || 0) + 1;
+                    allStatuses.add(evStatus);
+                });
             });
-        });
+        }
 
         const sortedStatus = Object.entries(statusCounts)
             .map(([name, count]) => ({ name, count }))
@@ -256,13 +293,20 @@ const Analytics = ({ data }) => {
         const sortedMonths = Array.from(allMonths).sort();
         const topStatuses = Object.entries(statusCounts).sort((a, b) => b[1] - a[1]).map(s => s[0]);
 
-        const bumpSeries = topStatuses.map(status => ({
+        let bumpSeries = topStatuses.map(status => ({
             id: status,
             data: sortedMonths.map(month => ({
                 x: month,
-                y: (timeStatusMap[month] && timeStatusMap[month][status]) || 0
+                y: (timeStatusMap[month] && timeStatusMap[month][status]) || null
             }))
         }));
+
+        // Fallback if no valid bump series found (avoids crash)
+        if (bumpSeries.length === 0) {
+            bumpSeries = getEmptyBumpData(mainStartDate, mainEndDate);
+            if (sortedStatus.length === 0) sortedStatus.push({ name: "No Data", count: 0 });
+            if (sortedPie.length === 0) sortedPie.push({ id: "No Data", label: "No Data", value: 1 });
+        }
 
         return {
             statusDistribution: sortedStatus,
@@ -287,10 +331,10 @@ const Analytics = ({ data }) => {
             'Subscription Charge Unfrozen': 0,
             'Subscription Charge Cancelled': 0
         };
-
         const timeStatusMap = {};
         const allMonths = new Set();
         let useDaily = false;
+
         if (subStartDate && subEndDate) {
             const start = new Date(subStartDate);
             const end = new Date(subEndDate);
@@ -299,61 +343,63 @@ const Analytics = ({ data }) => {
             if (diffDays < 60) useDaily = true;
         }
 
-        chartData.forEach(item => {
-            const events = item.additionalInfo || [];
-            if (events.length === 0) return;
+        if (chartData.length > 0) {
+            chartData.forEach(item => {
+                const events = item.additionalInfo || [];
+                if (events.length === 0) return;
 
-            // Populate recent activity list & Bump Chart Data
-            events.forEach(event => {
-                const evName = event.event?.toLowerCase();
-                if (subscriptionEvents.includes(evName)) {
-                    recentActivations.push({
-                        shop: item.shopDomain || item.shop || "Unknown Store",
-                        date: event.date,
-                        event: event.event
-                    });
+                // Populate recent activity list & Bump Chart Data
+                events.forEach(event => {
+                    const evName = event.event?.toLowerCase();
+                    if (subscriptionEvents.includes(evName)) {
+                        recentActivations.push({
+                            shop: item.shopDomain || item.shop || "Unknown Store",
+                            date: event.date,
+                            event: event.event
+                        });
 
-                    // Bump Chart Logic (Activity over time)
-                    const dateObj = safeParseDate(event.date);
-                    if (dateObj) {
-                        let timeKey;
-                        if (useDaily) {
-                            timeKey = dateObj.toISOString().split('T')[0];
-                        } else {
-                            timeKey = `${dateObj.getFullYear()}-${String(dateObj.getMonth() + 1).padStart(2, '0')}`;
-                        }
+                        // Bump Chart Logic (Activity over time)
+                        const dateObj = safeParseDate(event.date);
+                        if (dateObj) {
+                            let timeKey;
+                            if (useDaily) {
+                                timeKey = dateObj.toISOString().split('T')[0];
+                            } else {
+                                timeKey = `${dateObj.getFullYear()}-${String(dateObj.getMonth() + 1).padStart(2, '0')}`;
+                            }
 
-                        // Capitalize for consistency with counts
-                        let statusLabel = "";
-                        if (evName.includes('activated')) statusLabel = 'Subscription Charge Activated';
-                        else if (evName.includes('frozen') && !evName.includes('unfrozen')) statusLabel = 'Subscription Charge Frozen';
-                        else if (evName.includes('unfrozen')) statusLabel = 'Subscription Charge Unfrozen';
-                        else if (evName.includes('cancelled')) statusLabel = 'Subscription Charge Cancelled';
+                            // Capitalize for consistency with counts
+                            let statusLabel = "";
+                            if (evName.includes('activated')) statusLabel = 'Subscription Charge Activated';
+                            else if (evName.includes('frozen') && !evName.includes('unfrozen')) statusLabel = 'Subscription Charge Frozen';
+                            else if (evName.includes('unfrozen')) statusLabel = 'Subscription Charge Unfrozen';
+                            else if (evName.includes('cancelled')) statusLabel = 'Subscription Charge Cancelled';
 
-                        if (statusLabel) {
-                            allMonths.add(timeKey);
-                            if (!timeStatusMap[timeKey]) timeStatusMap[timeKey] = {};
-                            timeStatusMap[timeKey][statusLabel] = (timeStatusMap[timeKey][statusLabel] || 0) + 1;
+                            if (statusLabel) {
+                                allMonths.add(timeKey);
+                                if (!timeStatusMap[timeKey]) timeStatusMap[timeKey] = {};
+                                timeStatusMap[timeKey][statusLabel] = (timeStatusMap[timeKey][statusLabel] || 0) + 1;
+                            }
                         }
                     }
+                });
+
+                // Subscription Bar/Pie Data Calculation
+                const sortedEvents = [...events].sort((a, b) => {
+                    const dateA = safeParseDate(a.date);
+                    const dateB = safeParseDate(b.date);
+                    return dateB - dateA;
+                });
+                const latestEvent = sortedEvents[0].event?.toLowerCase() || "";
+
+                if (subscriptionEvents.includes(latestEvent)) {
+                    if (latestEvent.includes('activated')) subscriptionCounts['Subscription Charge Activated']++;
+                    else if (latestEvent.includes('frozen') && !latestEvent.includes('unfrozen')) subscriptionCounts['Subscription Charge Frozen']++;
+                    else if (latestEvent.includes('unfrozen')) subscriptionCounts['Subscription Charge Unfrozen']++;
+                    else if (latestEvent.includes('cancelled')) subscriptionCounts['Subscription Charge Cancelled']++;
                 }
             });
-
-            // Subscription Bar/Pie Data Calculation (Latest Status Snapshot)
-            const sortedEvents = [...events].sort((a, b) => {
-                const dateA = safeParseDate(a.date);
-                const dateB = safeParseDate(b.date);
-                return dateB - dateA;
-            });
-            const latestEvent = sortedEvents[0].event?.toLowerCase() || "";
-
-            if (subscriptionEvents.includes(latestEvent)) {
-                if (latestEvent.includes('activated')) subscriptionCounts['Subscription Charge Activated']++;
-                else if (latestEvent.includes('frozen') && !latestEvent.includes('unfrozen')) subscriptionCounts['Subscription Charge Frozen']++;
-                else if (latestEvent.includes('unfrozen')) subscriptionCounts['Subscription Charge Unfrozen']++;
-                else if (latestEvent.includes('cancelled')) subscriptionCounts['Subscription Charge Cancelled']++;
-            }
-        });
+        }
 
         // Sort by date descending
         recentActivations.sort((a, b) => {
@@ -362,27 +408,40 @@ const Analytics = ({ data }) => {
             return dateB - dateA;
         });
 
-        const subscriptionBarData = [
+        let subscriptionBarData = [
             { name: 'Subscription Charge Activated', count: subscriptionCounts['Subscription Charge Activated'] },
             { name: 'Subscription Charge Frozen', count: subscriptionCounts['Subscription Charge Frozen'] },
             { name: 'Subscription Charge Unfrozen', count: subscriptionCounts['Subscription Charge Unfrozen'] },
             { name: 'Subscription Charge Cancelled', count: subscriptionCounts['Subscription Charge Cancelled'] }
         ].sort((a, b) => b.count - a.count);
 
-        const subscriptionPieData = subscriptionBarData
+        let subscriptionPieData = subscriptionBarData
             .map(d => ({ id: d.name, label: d.name, value: d.count }))
             .sort((a, b) => b.value - a.value);
 
         const sortedMonths = Array.from(allMonths).sort();
-        const topStatuses = Object.keys(subscriptionCounts); // Use all subscription keys
+        const topStatuses = Object.keys(subscriptionCounts);
 
-        const subscriptionBumpData = topStatuses.map(status => ({
+        let subscriptionBumpData = topStatuses.map(status => ({
             id: status,
             data: sortedMonths.map(month => ({
                 x: month,
-                y: (timeStatusMap[month] && timeStatusMap[month][status]) || 0
+                y: (timeStatusMap[month] && timeStatusMap[month][status]) || null
             }))
         }));
+
+        // Filter out series that have NO data points (all null)
+        subscriptionBumpData = subscriptionBumpData.filter(series => series.data.some(d => d.y !== null));
+
+        // Fallback for empty bump data
+        if (subscriptionBumpData.length === 0) {
+            subscriptionBumpData = getEmptyBumpData(subStartDate, subEndDate);
+            // Also ensure bar/pie have dummy data if totally empty
+            if (subscriptionBarData.every(d => d.count === 0)) {
+                subscriptionBarData = [{ name: "No Data", count: 0 }];
+                subscriptionPieData = [{ id: "No Data", label: "No Data", value: 1 }];
+            }
+        }
 
         return {
             recentActivations: recentActivations.slice(0, 50),
@@ -759,7 +818,7 @@ const Analytics = ({ data }) => {
                             setShowPicker={setShowSubPicker}
                             pickerRef={subPickerRef}
                         />
-                        <div style={{ width: '150px' }}>
+                        <div>
                             <CustomDropdown
                                 name="subChartType"
                                 value={subChartType}
@@ -778,24 +837,7 @@ const Analytics = ({ data }) => {
     }
 
 
-    if (!data || data.length === 0) {
-        return (
-            <div className="analytics-container fade-in" style={{ padding: '2rem', width: '100%', maxWidth: '1200px', margin: '0 auto' }}>
-                <div className="data-header">
-                    <div className="data-header-left">
-                        <div className="data-header-title">
-                            <h1>Analytics Dashboard</h1>
-                            <p>Visualizing 0 records</p>
-                        </div>
-                    </div>
-                </div>
-                <div style={{ textAlign: 'center', padding: '4rem', background: 'white', borderRadius: '16px', border: '1px solid var(--border)' }}>
-                    <h3 style={{ marginBottom: '1rem', color: '#334155' }}>No data available</h3>
-                    <p style={{ color: '#64748b' }}>Try adjusting your filters in the Database Records tab.</p>
-                </div>
-            </div>
-        );
-    }
+
 
 
     return (
@@ -827,7 +869,7 @@ const Analytics = ({ data }) => {
                             setShowPicker={setShowMainPicker}
                             pickerRef={mainPickerRef}
                         />
-                        <div style={{ width: '150px' }}>
+                        <div>
                             <CustomDropdown
                                 name="chartType"
                                 value={chartType}
