@@ -20,8 +20,8 @@ const Filters = ({
 
     return (
         <div className="filter-popover">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-                <h3 style={{ margin: 0 }}>Filters</h3>
+            <div className="filters-header-row">
+                <h3 className="filters-title">Filters</h3>
                 <button
                     className="filter-icon-button"
                     onClick={() => setShowFilters(false)}

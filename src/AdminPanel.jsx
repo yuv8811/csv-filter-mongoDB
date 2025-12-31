@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo } from "react";
+import { Routes, Route, useLocation, useNavigate } from "react-router-dom";
 import Sidebar from "./components/sidebar";
 import RepositoryExplorer from "./components/RepositoryExplorer";
 import ExportEngine from "./components/ExportEngine";
@@ -10,8 +11,9 @@ import Login from "./components/login";
 import { safeParseDate } from "./utils/helpers";
 
 export default function AdminPanel() {
+    const location = useLocation();
+    const navigate = useNavigate();
     const [data, setData] = useState(null);
-    const [activeTab, setActiveTab] = useState("view");
     const [isAuthenticated, setIsAuthenticated] = useState(() => {
         const auth = localStorage.getItem("isAuthenticated") === "true";
         const timestamp = localStorage.getItem("loginTimestamp");
@@ -62,7 +64,6 @@ export default function AdminPanel() {
         localStorage.setItem("isAuthenticated", "true");
         localStorage.setItem("loginTimestamp", new Date().getTime().toString());
         setIsAuthenticated(true);
-        setActiveTab("view");
     };
     const [filters, setFilters] = useState({
         shopDomain: "",
@@ -164,7 +165,9 @@ export default function AdminPanel() {
 
     const sortedAndFilteredData = useMemo(() => {
         if (!data) return [];
-        const activeFilters = activeTab === "export" ? exportFilters : filters;
+        // Determine active filter set based on path
+        const isExport = location.pathname.includes("export");
+        const activeFilters = isExport ? exportFilters : filters;
 
         let result = data.filter(item => {
             const events = item.additionalInfo?.length
@@ -226,7 +229,7 @@ export default function AdminPanel() {
             });
         }
         return result;
-    }, [data, filters, exportFilters, activeTab]);
+    }, [data, filters, exportFilters, location.pathname]);
 
     const currentDataSlice = useMemo(() => {
         const startIndex = (currentPage - 1) * itemsPerPage;
@@ -281,14 +284,15 @@ export default function AdminPanel() {
     };
 
     const resetFilters = () => {
+        const isExport = location.pathname.includes("export");
         const defaultFilters = {
             shopDomain: "",
-            eventStatus: activeTab === "export" ? [] : "",
+            eventStatus: isExport ? [] : "",
             firstEventSort: "",
             lastEventSort: "",
             totalSpentSort: ""
         };
-        if (activeTab === "view") setFilters(defaultFilters);
+        if (!isExport) setFilters(defaultFilters);
         else setExportFilters(defaultFilters);
         setCurrentPage(1);
     };
@@ -354,50 +358,46 @@ export default function AdminPanel() {
     return (
         <div className="admin-layout">
             <Sidebar
-                activeTab={activeTab}
-                setActiveTab={setActiveTab}
                 onLogout={handleLogout}
             />
 
             <main className="admin-main">
-                {activeTab === "view" && (
-                    <RepositoryExplorer
-                        data={currentDataSlice}
-                        filters={filters}
-                        handleFilterChange={handleFilterChange}
-                        statuses={statuses}
-                        resetFilters={resetFilters}
-                        currentPage={currentPage}
-                        totalPages={totalPages}
-                        handlePageChange={setCurrentPage}
-                        onViewDetail={setSelectedItem}
-                        originalDataCount={sortedAndFilteredData.length}
-                        totalAmount={totalAmount}
-                    />
-                )}
-                {activeTab === "import" && (
-                    <Upload onSuccess={() => {
-                        fetchData();
-                        setActiveTab("view");
-                    }} />
-                )}
-                {activeTab === "export" && (
-                    <ExportEngine
-                        filters={exportFilters}
-                        handleFilterChange={handleExportFilterChange}
-                        handleStatusBulk={handleExportStatusBulk}
-                        statuses={statuses}
-                        resetFilters={resetFilters}
-                        recordCount={sortedAndFilteredData.length}
-                        onExport={exportToCSV}
-                    />
-                )}
-                {activeTab === "analytics" && (
-                    <Analytics data={data} />
-                )}
-                {activeTab === "metafields" && (
-                    <MetafieldSearch />
-                )}
+                <Routes>
+                    <Route path="/" element={
+                        <RepositoryExplorer
+                            data={currentDataSlice}
+                            filters={filters}
+                            handleFilterChange={handleFilterChange}
+                            statuses={statuses}
+                            resetFilters={resetFilters}
+                            currentPage={currentPage}
+                            totalPages={totalPages}
+                            handlePageChange={setCurrentPage}
+                            onViewDetail={setSelectedItem}
+                            originalDataCount={sortedAndFilteredData.length}
+                            totalAmount={totalAmount}
+                        />
+                    } />
+                    <Route path="/import" element={
+                        <Upload onSuccess={() => {
+                            fetchData();
+                            navigate("/");
+                        }} />
+                    } />
+                    <Route path="/export" element={
+                        <ExportEngine
+                            filters={exportFilters}
+                            handleFilterChange={handleExportFilterChange}
+                            handleStatusBulk={handleExportStatusBulk}
+                            statuses={statuses}
+                            resetFilters={resetFilters}
+                            recordCount={sortedAndFilteredData.length}
+                            onExport={exportToCSV}
+                        />
+                    } />
+                    <Route path="/analytics" element={<Analytics data={data} />} />
+                    <Route path="/metafields" element={<MetafieldSearch />} />
+                </Routes>
             </main>
 
             <DetailModal

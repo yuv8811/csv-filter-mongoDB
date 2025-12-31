@@ -33,7 +33,7 @@
 }
 
 .month-year-label {
-    font-size: 15px;
+    font-size: 16px;
     font-weight: 600;
     color: #0f172a;
     letter-spacing: -0.01em;
@@ -67,7 +67,7 @@
 }
 
 .weekday-label {
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 600;
     color: #94a3b8;
     text-transform: uppercase;
@@ -85,7 +85,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 14px;
+    font-size: 15px;
     cursor: pointer;
     position: relative;
     color: #334155;
@@ -170,7 +170,7 @@
     background: white;
     padding: 6px 12px;
     border-radius: 6px;
-    font-size: 13px;
+    font-size: 14px;
     font-weight: 600;
     color: #0f172a;
     border: 1px solid #e2e8f0;

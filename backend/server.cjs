@@ -51,6 +51,8 @@ const CsvSchema = new mongoose.Schema({
 const CsvData = mongoose.model("csvdatas", CsvSchema);
 
 const UserSchema = new mongoose.Schema({
+    fullName: String,
+    username: { type: String, required: true, unique: true },
     email: { type: String, required: true },
     password: { type: String, required: true }
 }, { collection: 'user', versionKey: false });
@@ -241,20 +243,48 @@ app.get("/shopify/metafields", async (req, res) => {
 });
 
 app.post("/login", async (req, res) => {
-    const { email, password } = req.body;
-    if (!email || !password) {
-        return res.status(400).json({ error: "Email and password are required" });
+    const { identifier, password } = req.body;
+    if (!identifier || !password) {
+        return res.status(400).json({ error: "Username/Email and password are required" });
     }
 
     try {
-        const user = await User.findOne({ email, password });
+        const user = await User.findOne({
+            $or: [{ email: identifier }, { username: identifier }],
+            password
+        });
         if (user) {
-            res.json({ success: true, message: "Login successful", user: { email: user.email, _id: user._id } });
+            res.json({ success: true, message: "Login successful", user: { fullName: user.fullName, email: user.email, _id: user._id } });
         } else {
             res.status(401).json({ error: "Invalid credentials" });
         }
     } catch (err) {
         console.error("Login error:", err);
+        res.status(500).json({ error: "Internal server error" });
+    }
+});
+
+app.post("/register", async (req, res) => {
+    const { fullName, username, email, password } = req.body;
+    if (!fullName || !username || !email || !password) {
+        return res.status(400).json({ error: "All fields are required" });
+    }
+
+    try {
+        const existingUser = await User.findOne({
+            $or: [{ email }, { username }]
+        });
+
+        if (existingUser) {
+            if (existingUser.email === email) return res.status(400).json({ error: "Email already exists" });
+            if (existingUser.username === username) return res.status(400).json({ error: "Username already exists" });
+        }
+
+        const newUser = await User.create({ fullName, username, email, password });
+
+        res.status(201).json({ success: true, message: "Registration successful", user: { fullName: newUser.fullName, username: newUser.username, email: newUser.email, _id: newUser._id } });
+    } catch (err) {
+        console.error("Registration error:", err);
         res.status(500).json({ error: "Internal server error" });
     }
 });

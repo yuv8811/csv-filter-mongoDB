@@ -52,92 +52,57 @@ const DetailModal = ({ item, onClose }) => {
                     </div>
                 </div>
 
-                <div className="detail-tabs" style={{
-                    display: 'flex',
-                    gap: '1rem',
-                    padding: '0 2rem',
-                    borderBottom: '1px solid #f1f5f9',
-                    marginBottom: '1rem'
-                }}>
+                <div className="detail-tabs-container">
                     <button
                         onClick={() => setActiveTab("all")}
-                        style={{
-                            padding: '12px 4px',
-                            background: 'none',
-                            border: 'none',
-                            fontSize: '0.875rem',
-                            fontWeight: 600,
-                            color: activeTab === "all" ? 'var(--primary)' : 'var(--text-muted)',
-                            borderBottom: activeTab === "all" ? '2px solid var(--primary)' : '2px solid transparent',
-                            cursor: 'pointer',
-                            transition: 'all 0.2s'
-                        }}
+                        className={`detail-tab-btn ${activeTab === "all" ? "active" : ""}`}
                     >
                         All Events ({allEvents.length})
                     </button>
                     <button
                         onClick={() => setActiveTab("subscription")}
-                        style={{
-                            padding: '12px 4px',
-                            background: 'none',
-                            border: 'none',
-                            fontSize: '0.875rem',
-                            fontWeight: 600,
-                            color: activeTab === "subscription" ? 'var(--primary)' : 'var(--text-muted)',
-                            borderBottom: activeTab === "subscription" ? '2px solid var(--primary)' : '2px solid transparent',
-                            cursor: 'pointer',
-                            transition: 'all 0.2s'
-                        }}
+                        className={`detail-tab-btn ${activeTab === "subscription" ? "active" : ""}`}
                     >
                         Subscription Only ({subscriptionEvents.length})
                     </button>
                 </div>
 
-                <div className="sheet-body" style={{ maxHeight: '60vh', overflowY: 'auto' }}>
+                <div className="sheet-body sheet-scroll-area">
                     <span className="section-label">
                         {activeTab === "all" ? "COMPLETE EVENT LOG" : "SUBSCRIPTION RELATED EVENTS"}
                     </span>
-                    <div className="table-wrapper" style={{ padding: '0 1.5rem 2rem' }}>
-                        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
+                    <div>
+                        <table className="detail-table">
                             <thead>
-                                <tr style={{ borderBottom: '1px solid #e2e8f0' }}>
-                                    <th style={{ padding: '12px 8px', textAlign: 'left', fontWeight: 600, color: '#64748b', width: '35%' }}>Event</th>
-                                    <th style={{ padding: '12px 8px', textAlign: 'left', fontWeight: 600, color: '#64748b', width: '25%' }}>Date</th>
-                                    <th style={{ padding: '12px 8px', textAlign: 'left', fontWeight: 600, color: '#64748b', width: '40%' }}>Details</th>
+                                <tr>
+                                    <th style={{ width: '35%' }}>Event</th>
+                                    <th style={{ width: '25%' }}>Date</th>
+                                    <th style={{ width: '40%' }}>Details</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {displayEvents.length > 0 ? (
                                     displayEvents.slice().reverse().map((ev, idx) => (
-                                        <tr key={idx} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                                            <td style={{ padding: '16px 8px', verticalAlign: 'top' }}>
-                                                <div style={{ fontWeight: 500, color: '#1e293b' }}>{ev.event}</div>
+                                        <tr key={idx}>
+                                            <td>
+                                                <div className="detail-event-name">{ev.event}</div>
                                                 {activeTab === "all" && idx === 0 && (
-                                                    <span style={{
-                                                        fontSize: '0.7rem',
-                                                        padding: '2px 8px',
-                                                        borderRadius: '12px',
-                                                        background: '#232323ff',
-                                                        color: '#ffffffff',
-                                                        marginTop: '6px',
-                                                        display: 'inline-block',
-                                                        fontWeight: 600
-                                                    }}>
+                                                    <span className="latest-badge">
                                                         Latest
                                                     </span>
                                                 )}
                                             </td>
-                                            <td style={{ padding: '16px 8px', verticalAlign: 'top', color: '#475569' }}>
+                                            <td className="detail-date">
                                                 <div>{ev.date}</div>
                                                 {ev.billingDate && (
-                                                    <div style={{ fontSize: '0.75rem', color: '#6366f1', marginTop: '4px' }}>
+                                                    <div className="billing-date">
                                                         Bill: {ev.billingDate}
                                                     </div>
                                                 )}
                                             </td>
-                                            <td style={{ padding: '16px 8px', verticalAlign: 'top', color: '#64748b', fontSize: '0.8125rem', lineHeight: '1.5' }}>
+                                            <td className="detail-description">
                                                 {ev.details ? (
-                                                    <div style={{ background: '#f8fafc', padding: '8px', borderRadius: '6px' }}>
+                                                    <div className="detail-box">
                                                         {ev.details}
                                                     </div>
                                                 ) : "-"}
@@ -146,7 +111,7 @@ const DetailModal = ({ item, onClose }) => {
                                     ))
                                 ) : (
                                     <tr>
-                                        <td colSpan="3" style={{ textAlign: 'center', padding: '3rem', color: '#94a3b8' }}>
+                                        <td colSpan="3" className="no-events-message">
                                             No events found matching criteria.
                                         </td>
                                     </tr>

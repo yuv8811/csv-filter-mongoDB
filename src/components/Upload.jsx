@@ -118,38 +118,38 @@ function Upload({ onSuccess }) {
                         </button>
                     </>
                 ) : (
-                    <div className="upload-results-summary" style={{ textAlign: 'left', padding: '1rem', background: 'rgba(248, 250, 252, 0.5)', borderRadius: '16px', border: '1px solid var(--border)' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', color: '#059669' }}>
+                    <div className="upload-results-summary upload-results-card">
+                        <div className="upload-success-header">
+                            <div className="upload-success-title">
                                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                                     <polyline points="20 6 9 17 4 12" />
                                 </svg>
-                                <h2 style={{ fontSize: '1.25rem', margin: 0 }}>Upload Complete</h2>
+                                <h2>Upload Complete</h2>
                             </div>
                         </div>
 
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #e2e8f0', paddingBottom: '0.5rem' }}>
-                                <span style={{ color: 'var(--text-muted)', fontWeight: 600 }}>Total Stores in File:</span>
-                                <strong style={{ color: 'var(--text-main)' }}>
+                        <div className="upload-stats-list">
+                            <div className="upload-stat-item bordered">
+                                <span className="upload-stat-label">Total Stores in File:</span>
+                                <strong className="upload-stat-value">
                                     {(result.newShops || result.inserted || 0) + (result.updatedShops || result.updated || 0)}
                                 </strong>
                             </div>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #e2e8f0', paddingBottom: '0.5rem' }}>
-                                <span style={{ color: 'var(--text-muted)', fontWeight: 600 }}>New Stores Created:</span>
-                                <strong style={{ color: '#059669' }}>
+                            <div className="upload-stat-item bordered">
+                                <span className="upload-stat-label">New Stores Created:</span>
+                                <strong className="upload-stat-value success">
                                     {result.newShops ?? result.inserted ?? '0'}
                                 </strong>
                             </div>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: '0.5rem' }}>
-                                <span style={{ color: 'var(--text-muted)', fontWeight: 600 }}>Existing Stores Updated:</span>
-                                <strong style={{ color: '#2563eb' }}>
+                            <div className="upload-stat-item">
+                                <span className="upload-stat-label">Existing Stores Updated:</span>
+                                <strong className="upload-stat-value primary">
                                     {result.updatedShops ?? result.updated ?? '0'}
                                 </strong>
                             </div>
                         </div>
 
-                        <button className="upload-button" onClick={handleProceed} style={{ marginTop: '2rem' }}>
+                        <button className="upload-button upload-action-btn" onClick={handleProceed}>
                             Go to Dashboard
                         </button>
                     </div>

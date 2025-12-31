@@ -1,26 +1,29 @@
-const Sidebar = ({ activeTab, setActiveTab, onLogout }) => {
+import { NavLink } from 'react-router-dom';
+
+const Sidebar = ({ onLogout }) => {
     return (
         <aside className="admin-sidebar">
             <div className="sidebar-header">
                 <div className="sidebar-brand">
-                    <h2>Admin Panel</h2>
+                    <h2>Custlo</h2>
                 </div>
             </div>
 
             <nav className="admin-tabs">
-                <button
-                    className={`tab-button ${activeTab === "view" ? "active" : ""}`}
-                    onClick={() => setActiveTab("view")}
+                <NavLink
+                    to="/"
+                    end
+                    className={({ isActive }) => `tab-button ${isActive ? "active" : ""}`}
                 >
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
                         <polyline points="9 22 9 12 15 12 15 22" />
                     </svg>
                     Database Records
-                </button>
-                <button
-                    className={`tab-button ${activeTab === "import" ? "active" : ""}`}
-                    onClick={() => setActiveTab("import")}
+                </NavLink>
+                <NavLink
+                    to="/import"
+                    className={({ isActive }) => `tab-button ${isActive ? "active" : ""}`}
                 >
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
@@ -28,10 +31,10 @@ const Sidebar = ({ activeTab, setActiveTab, onLogout }) => {
                         <line x1="12" y1="3" x2="12" y2="15" />
                     </svg>
                     Import Center
-                </button>
-                <button
-                    className={`tab-button ${activeTab === "export" ? "active" : ""}`}
-                    onClick={() => setActiveTab("export")}
+                </NavLink>
+                <NavLink
+                    to="/export"
+                    className={({ isActive }) => `tab-button ${isActive ? "active" : ""}`}
                 >
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
@@ -39,10 +42,10 @@ const Sidebar = ({ activeTab, setActiveTab, onLogout }) => {
                         <line x1="12" y1="15" x2="12" y2="3" />
                     </svg>
                     Export Center
-                </button>
-                <button
-                    className={`tab-button ${activeTab === "analytics" ? "active" : ""}`}
-                    onClick={() => setActiveTab("analytics")}
+                </NavLink>
+                <NavLink
+                    to="/analytics"
+                    className={({ isActive }) => `tab-button ${isActive ? "active" : ""}`}
                 >
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                         <line x1="18" y1="20" x2="18" y2="10"></line>
@@ -50,10 +53,10 @@ const Sidebar = ({ activeTab, setActiveTab, onLogout }) => {
                         <line x1="6" y1="20" x2="6" y2="14"></line>
                     </svg>
                     Analytics
-                </button>
-                <button
-                    className={`tab-button ${activeTab === "metafields" ? "active" : ""}`}
-                    onClick={() => setActiveTab("metafields")}
+                </NavLink>
+                <NavLink
+                    to="/metafields"
+                    className={({ isActive }) => `tab-button ${isActive ? "active" : ""}`}
                 >
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                         <circle cx="11" cy="11" r="8" />
@@ -62,7 +65,7 @@ const Sidebar = ({ activeTab, setActiveTab, onLogout }) => {
                         <line x1="8" y1="11" x2="14" y2="11" />
                     </svg>
                     Metafield Search
-                </button>
+                </NavLink>
                 <button
                     className="tab-button logout-button"
                     onClick={onLogout}
