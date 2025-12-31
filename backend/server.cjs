@@ -224,6 +224,7 @@ app.get("/shopify/metafields", async (req, res) => {
         }
     `;
 
+
     try {
         const response = await fetch(`https://${shop}/admin/api/2024-01/graphql.json`, {
             method: "POST",
@@ -237,7 +238,6 @@ app.get("/shopify/metafields", async (req, res) => {
         const data = await response.json();
         res.json(data);
     } catch (err) {
-        console.error("Shopify API Error:", err);
         res.status(500).json({ error: "Failed to fetch from Shopify", details: err.message });
     }
 });
@@ -264,29 +264,23 @@ app.post("/login", async (req, res) => {
     }
 });
 
-app.post("/register", async (req, res) => {
-    const { fullName, username, email, password } = req.body;
-    if (!fullName || !username || !email || !password) {
-        return res.status(400).json({ error: "All fields are required" });
-    }
+app.post("/verify-user", async (req, res) => {
+    const { userId } = req.body;
+    if (!userId) return res.status(400).json({ valid: false });
 
     try {
-        const existingUser = await User.findOne({
-            $or: [{ email }, { username }]
-        });
-
-        if (existingUser) {
-            if (existingUser.email === email) return res.status(400).json({ error: "Email already exists" });
-            if (existingUser.username === username) return res.status(400).json({ error: "Username already exists" });
+        const user = await User.findById(userId);
+        if (user) {
+            res.json({ valid: true });
+        } else {
+            res.json({ valid: false });
         }
-
-        const newUser = await User.create({ fullName, username, email, password });
-
-        res.status(201).json({ success: true, message: "Registration successful", user: { fullName: newUser.fullName, username: newUser.username, email: newUser.email, _id: newUser._id } });
     } catch (err) {
-        console.error("Registration error:", err);
+        console.error("Verification error:", err);
         res.status(500).json({ error: "Internal server error" });
     }
 });
+
+
 
 app.listen(3000, () => console.log("🚀 Server running on http://localhost:3000"));

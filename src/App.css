@@ -72,7 +72,7 @@ body {
 .data-container {
     max-width: 1200px;
     margin: 0 auto;
-    padding: 3rem 2rem;
+    padding: 0rem 2rem;
     animation: fadeInUp 0.6s ease-out;
 }
 
@@ -335,24 +335,24 @@ body {
 
 .filter-badge-count {
     position: absolute;
-    top: -6px;
-    right: -6px;
-    min-width: 20px;
-    height: 20px;
+    top: 6px;
+    right: 6px;
+    width: 8px;
+    height: 8px;
     background: #ef4444;
-    color: white;
-    border: 2.5px solid white;
-    border-radius: 10px;
-    font-size: 10px;
-    font-weight: 800;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 2;
+    border-radius: 50%;
+    /* Removed text properties */
+    color: transparent;
+    border: none;
+    box-shadow: 0 0 0 2px white;
+    /* Optional: adds a white ring around the dot to separate it from the icon */
+    font-size: 0;
+    /* Hides any text */
+    padding: 0;
     pointer-events: none;
-    box-shadow: 0 2px 4px rgba(239, 68, 68, 0.3);
-    padding: 0 4px;
 }
+
+
 
 .filter-popover {
     position: absolute;
@@ -749,39 +749,79 @@ body {
 }
 
 .custom-table td {
-    padding: 1rem 1.5rem;
+    padding: 1rem;
     font-size: 0.9375rem;
     color: var(--text-main);
     border-bottom: 1px solid #f1f5f9;
 }
 
-.custom-table tr:last-child td {
+.custom-table td.custom-table-td {
+    max-width: 1000px;
+    word-break: break-all;
+    display: block;
+}
+
+.custom-table tr:last-child td.custom-table-td {
     border-bottom: none;
 }
 
-.custom-table tr:hover td {
+.custom-table tr:hover td.custom-table-td {
     background: #fcfdfe;
 }
 
 .event-badge {
     display: inline-flex;
     align-items: center;
-    padding: 0.375rem 0.75rem;
-    border-radius: 9999px;
-    font-size: 0.75rem;
+    padding: 0.35rem 0.85rem;
+    border-radius: 30px;
+    font-size: 0.7rem;
     font-weight: 700;
-    letter-spacing: 0.025em;
-    text-transform: capitalize;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    background: #f1f5f9;
+    color: #64748b;
+    border: 1px solid transparent;
 }
 
-.status-subscribed {
+/* Status Mappings based on 'status-event name' class generation */
+
+/* Green: Activated */
+.event-badge.activated {
     background: #dcfce7;
-    color: #15803d;
+    color: #166534;
+    border-color: #bbf7d0;
 }
 
-.status-unsubscribed {
+/* Red: Canceled, Declined */
+.event-badge.canceled,
+.event-badge.status-declined,
+.event-badge.declined {
     background: #fee2e2;
-    color: #b91c1c;
+    color: #991b1b;
+    border-color: #fecaca;
+}
+
+/* Orange: Frozen */
+.event-badge.status-frozen,
+.event-badge.frozen {
+    background: #ffedd5;
+    color: #9a3412;
+    border-color: #fed7aa;
+}
+
+/* Gray: Uninstalled */
+.event-badge.status-uninstalled,
+.event-badge.uninstalled {
+    background: #f1f5f9;
+    color: #475569;
+    border-color: #e2e8f0;
+}
+
+/* Dark: Closed */
+.event-badge.closed {
+    background: #e2e8f0;
+    color: #334155;
+    border-color: #cbd5e1;
 }
 
 .pagination {
@@ -1020,7 +1060,7 @@ body {
 
 .detail-sheet {
     width: 95%;
-    max-width: 850px;
+    max-width: 1100px;
     background: #ffffff;
     border-radius: 28px;
     box-shadow: 0 40px 80px -20px rgba(0, 0, 0, 0.2);
@@ -1532,17 +1572,6 @@ body {
 .detail-event-name {
     font-weight: 500;
     color: #1e293b;
-}
-
-.latest-badge {
-    font-size: 0.7rem;
-    padding: 2px 8px;
-    border-radius: 12px;
-    background: #232323;
-    color: #ffffff;
-    margin-top: 6px;
-    display: inline-block;
-    font-weight: 600;
 }
 
 .detail-date {

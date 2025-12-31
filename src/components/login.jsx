@@ -142,9 +142,7 @@ const Login = ({ onLoginSuccess }) => {
                     </button>
                 </form>
 
-                <div className="auth-footer">
-                    <p>Don't have an account? <Link to="/registration" className="auth-link">Sign up</Link></p>
-                </div>
+
             </div>
         </div>
     );

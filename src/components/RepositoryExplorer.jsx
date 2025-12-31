@@ -1,6 +1,54 @@
 import { useState, useMemo } from 'react';
 import FilterBar from './FilterBar';
 
+const SortIcon = ({ direction }) => {
+    if (direction === 'asc') {
+        return (
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 19V5" />
+                <path d="M5 12l7-7 7 7" />
+            </svg>
+        );
+    }
+    if (direction === 'desc') {
+        return (
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 5v14" />
+                <path d="M19 12l-7 7-7-7" />
+            </svg>
+        );
+    }
+    return (
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="8 9 12 5 16 9"></polyline>
+            <polyline points="16 15 12 19 8 15"></polyline>
+        </svg>
+    );
+};
+
+const SortHeader = ({ label, sortKey, currentSort, onSort }) => {
+    const isActive = !!currentSort;
+    return (
+        <th
+            onClick={() => {
+                let nextSort;
+                if (currentSort === 'asc') nextSort = 'desc';
+                else if (currentSort === 'desc') nextSort = '';
+                else nextSort = 'asc';
+                onSort(sortKey, nextSort);
+            }}
+            className={`sortable-th ${isActive ? 'active' : ''}`}
+        >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                {label}
+                <div className="sort-icon-wrapper">
+                    <SortIcon direction={currentSort} />
+                </div>
+            </div>
+        </th>
+    );
+};
+
 const RepositoryExplorer = ({
     data,
     filters,
@@ -49,39 +97,24 @@ const RepositoryExplorer = ({
                         <tr>
                             <th>Shop Domain</th>
                             <th>Status</th>
-                            <th
-                                onClick={() => handleFilterChange({ target: { name: 'totalSpentSort', value: filters.totalSpentSort === 'asc' ? 'desc' : 'asc' } })}
-                                className="sortable-th"
-                            >
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                    Total Spent
-                                    {filters.totalSpentSort === 'asc' && <span>↑</span>}
-                                    {filters.totalSpentSort === 'desc' && <span>↓</span>}
-                                    {!filters.totalSpentSort && <span style={{ opacity: 0.3, fontSize: '10px' }}>⇅</span>}
-                                </div>
-                            </th>
-                            <th
-                                onClick={() => handleFilterChange({ target: { name: 'firstEventSort', value: filters.firstEventSort === 'asc' ? 'desc' : 'asc' } })}
-                                className="sortable-th"
-                            >
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                    Created On
-                                    {filters.firstEventSort === 'asc' && <span>↑</span>}
-                                    {filters.firstEventSort === 'desc' && <span>↓</span>}
-                                    {!filters.firstEventSort && <span style={{ opacity: 0.3, fontSize: '10px' }}>⇅</span>}
-                                </div>
-                            </th>
-                            <th
-                                onClick={() => handleFilterChange({ target: { name: 'lastEventSort', value: filters.lastEventSort === 'asc' ? 'desc' : 'asc' } })}
-                                className="sortable-th"
-                            >
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                    Updated On
-                                    {filters.lastEventSort === 'asc' && <span>↑</span>}
-                                    {filters.lastEventSort === 'desc' && <span>↓</span>}
-                                    {!filters.lastEventSort && <span style={{ opacity: 0.3, fontSize: '10px' }}>⇅</span>}
-                                </div>
-                            </th>
+                            <SortHeader
+                                label="Plan Price"
+                                sortKey="planPriceSort"
+                                currentSort={filters.planPriceSort}
+                                onSort={(key, val) => handleFilterChange({ target: { name: key, value: val } })}
+                            />
+                            <SortHeader
+                                label="Created On"
+                                sortKey="firstEventSort"
+                                currentSort={filters.firstEventSort}
+                                onSort={(key, val) => handleFilterChange({ target: { name: key, value: val } })}
+                            />
+                            <SortHeader
+                                label="Updated On"
+                                sortKey="lastEventSort"
+                                currentSort={filters.lastEventSort}
+                                onSort={(key, val) => handleFilterChange({ target: { name: key, value: val } })}
+                            />
                             <th className="text-right">Actions</th>
                         </tr>
                     </thead>
@@ -89,13 +122,10 @@ const RepositoryExplorer = ({
                         {data.length > 0 ? data.map(item => {
                             return (
                                 <tr key={item._id}>
-                                    <td className="font-semibold">{item.shopDomain}</td>
+                                    <td className="font-semibold custom-table-td">{item.shopDomain}</td>
                                     <td><span className={`event-badge status-${item.currentEvent?.toLowerCase()}`}>{item.currentEvent}</span></td>
                                     <td className="font-semibold text-primary">
-                                        ${item.totalSpent?.toFixed(2)}
-                                        <div className="sub-text-small">
-                                            {item.activeMonths} month{item.activeMonths !== 1 ? 's' : ''}
-                                        </div>
+                                        ${item.planPrice?.toFixed(2)}
                                     </td>
                                     <td className="font-mono-muted">
                                         {item.firstEventDate}

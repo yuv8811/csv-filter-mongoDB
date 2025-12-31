@@ -60,11 +60,18 @@ const FilterBar = ({
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                         <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
                     </svg>
-                    {Object.values(filters).some(v => v !== "" && v !== undefined && (Array.isArray(v) ? v.length > 0 : true)) && (
-                        <div className="filter-badge-count">
-                            {Object.values(filters).filter(v => v !== "" && v !== undefined && (Array.isArray(v) ? v.length > 0 : true)).length}
-                        </div>
-                    )}
+                    {(() => {
+                        const activeCount = Object.entries(filters).filter(([key, value]) => {
+                            if (['shopDomain', 'firstEventSort', 'lastEventSort', 'planPriceSort'].includes(key)) return false;
+                            return value !== "" && value !== undefined && (Array.isArray(value) ? value.length > 0 : true);
+                        }).length;
+
+                        return activeCount > 0 && (
+                            <div className="filter-badge-count">
+                                {activeCount}
+                            </div>
+                        );
+                    })()}
                 </button>
 
                 {showFilters && (

@@ -17,9 +17,10 @@ export default function AdminPanel() {
     const [isAuthenticated, setIsAuthenticated] = useState(() => {
         const auth = localStorage.getItem("isAuthenticated") === "true";
         const timestamp = localStorage.getItem("loginTimestamp");
+        const userId = localStorage.getItem("userId");
         const twelveHours = 12 * 60 * 60 * 1000;
 
-        if (auth && timestamp) {
+        if (auth && timestamp && userId) {
             const now = new Date().getTime();
             if (now - parseInt(timestamp, 10) < twelveHours) {
                 return true;
@@ -28,31 +29,55 @@ export default function AdminPanel() {
         // If we get here, it's either not auth or expired
         localStorage.removeItem("isAuthenticated");
         localStorage.removeItem("loginTimestamp");
+        localStorage.removeItem("userId");
         return false;
     });
 
     const handleLogout = () => {
         localStorage.removeItem("isAuthenticated");
         localStorage.removeItem("loginTimestamp");
+        localStorage.removeItem("userId");
         setIsAuthenticated(false);
     };
 
     useEffect(() => {
         if (!isAuthenticated) return;
 
-        const checkAuth = () => {
+        const checkAuth = async () => {
             const timestamp = localStorage.getItem("loginTimestamp");
+            const userId = localStorage.getItem("userId");
             const twelveHours = 12 * 60 * 60 * 1000;
             const now = new Date().getTime();
 
             if (!timestamp || (now - parseInt(timestamp, 10) > twelveHours)) {
-                handleLogout(); // Expired or missing timestamp -> logout
+                handleLogout();
+                return;
+            }
+
+            if (userId) {
+                try {
+                    const res = await fetch("http://localhost:3000/verify-user", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ userId })
+                    });
+                    const result = await res.json();
+                    if (!result.valid) {
+                        handleLogout();
+                    }
+                } catch (err) {
+                    console.error("Auth check failed", err);
+                }
+            } else {
+                handleLogout();
             }
         };
 
-        const interval = setInterval(checkAuth, 60 * 1000); // Check every minute
+        checkAuth();
+        checkAuth();
+        const interval = setInterval(checkAuth, 5000); // Check every 5 seconds
         return () => clearInterval(interval);
-    }, [isAuthenticated]);
+    }, [isAuthenticated, location.pathname]);
 
     // ... (existing state definitions) ...
     const [currentPage, setCurrentPage] = useState(1);
@@ -60,9 +85,12 @@ export default function AdminPanel() {
 
     // ... (near the end of the file) ...
 
-    const handleLoginSuccess = () => {
+    const handleLoginSuccess = (user) => {
         localStorage.setItem("isAuthenticated", "true");
         localStorage.setItem("loginTimestamp", new Date().getTime().toString());
+        if (user && user._id) {
+            localStorage.setItem("userId", user._id);
+        }
         setIsAuthenticated(true);
     };
     const [filters, setFilters] = useState({
@@ -70,14 +98,14 @@ export default function AdminPanel() {
         eventStatus: "",
         firstEventSort: "",
         lastEventSort: "",
-        totalSpentSort: ""
+        planPriceSort: ""
     });
     const [exportFilters, setExportFilters] = useState({
         shopDomain: "",
         eventStatus: [],
         firstEventSort: "",
         lastEventSort: "",
-        totalSpentSort: ""
+        planPriceSort: ""
     });
     const [selectedItem, setSelectedItem] = useState(null);
 
@@ -163,6 +191,26 @@ export default function AdminPanel() {
         return { amount: totalAmount, months: totalMonths };
     };
 
+    const determinePlanPrice = (additionalInfo) => {
+        if (!additionalInfo || additionalInfo.length === 0) return 0;
+
+        let activePrice = 0;
+        const stopEvents = ["subscription charge canceled", "frozen", "store closed", "uninstalled", "declined"];
+
+        additionalInfo.forEach(ev => {
+            const eventName = ev.event?.toLowerCase() || "";
+            if (eventName.includes("subscription charge activated")) {
+                const priceMatch = ev.details?.match(/\$(\d+(\.\d+)?)/);
+                if (priceMatch) {
+                    activePrice = parseFloat(priceMatch[1]);
+                }
+            } else if (stopEvents.some(stop => eventName.includes(stop))) {
+                activePrice = 0;
+            }
+        });
+        return activePrice;
+    };
+
     const sortedAndFilteredData = useMemo(() => {
         if (!data) return [];
         // Determine active filter set based on path
@@ -186,6 +234,7 @@ export default function AdminPanel() {
             return matchesDomain && matchesStatus;
         }).map(item => {
             const { amount, months } = calculateTotalSpent(item.additionalInfo);
+            const planPrice = determinePlanPrice(item.additionalInfo);
             const events = item.additionalInfo || [];
 
             const getDisplayDate = (ev) => {
@@ -197,6 +246,7 @@ export default function AdminPanel() {
                 ...item,
                 totalSpent: amount,
                 activeMonths: months,
+                planPrice: planPrice,
                 firstEventDate: getDisplayDate(events[0]),
                 lastEventDate: getDisplayDate(events[events.length - 1]),
                 currentEvent: events[events.length - 1]?.event || ""
@@ -205,29 +255,57 @@ export default function AdminPanel() {
 
 
 
+        const compareValues = (a, b, sortDir) => {
+            if (a === b) return 0;
+            if (a === null || a === undefined) return 1; // Move nulls to end
+            if (b === null || b === undefined) return -1;
+
+            if (sortDir === 'asc') return a < b ? -1 : 1;
+            return a > b ? -1 : 1;
+        };
+
+        const getSafeTimestamp = (dateStr) => {
+            const date = safeParseDate(dateStr);
+            return date ? date.getTime() : 0;
+        };
+
         if (activeFilters.firstEventSort) {
             result.sort((a, b) => {
-                const dateA = safeParseDate(a.firstEventDate);
-                const dateB = safeParseDate(b.firstEventDate);
-                return activeFilters.firstEventSort === "asc" ? dateA - dateB : dateB - dateA;
+                const timeA = getSafeTimestamp(a.firstEventDate);
+                const timeB = getSafeTimestamp(b.firstEventDate);
+
+                if (timeA !== timeB) {
+                    return activeFilters.firstEventSort === 'asc' ? timeA - timeB : timeB - timeA;
+                }
+                // Stable sort tie-breaker
+                return (a._id || '').localeCompare(b._id || '');
             });
         }
 
         if (activeFilters.lastEventSort) {
             result.sort((a, b) => {
-                const dateA = safeParseDate(a.lastEventDate);
-                const dateB = safeParseDate(b.lastEventDate);
-                return activeFilters.lastEventSort === "asc" ? dateA - dateB : dateB - dateA;
+                const timeA = getSafeTimestamp(a.lastEventDate);
+                const timeB = getSafeTimestamp(b.lastEventDate);
+
+                if (timeA !== timeB) {
+                    return activeFilters.lastEventSort === 'asc' ? timeA - timeB : timeB - timeA;
+                }
+                return (a._id || '').localeCompare(b._id || '');
             });
         }
 
-        if (activeFilters.totalSpentSort) {
+        if (activeFilters.planPriceSort) {
             result.sort((a, b) => {
-                return activeFilters.totalSpentSort === "asc"
-                    ? a.totalSpent - b.totalSpent
-                    : b.totalSpent - a.totalSpent;
+                const valA = a.planPrice || 0;
+                const valB = b.planPrice || 0;
+
+                if (valA !== valB) {
+                    return activeFilters.planPriceSort === 'asc' ? valA - valB : valB - valA;
+                }
+                return (a._id || '').localeCompare(b._id || '');
             });
         }
+
         return result;
     }, [data, filters, exportFilters, location.pathname]);
 
@@ -247,9 +325,9 @@ export default function AdminPanel() {
         setFilters(prev => ({
             ...prev,
             [name]: value,
-            ...(name === "firstEventSort" && value ? { lastEventSort: "", totalSpentSort: "" } : {}),
-            ...(name === "lastEventSort" && value ? { firstEventSort: "", totalSpentSort: "" } : {}),
-            ...(name === "totalSpentSort" && value ? { firstEventSort: "", lastEventSort: "" } : {})
+            ...(name === "firstEventSort" && value ? { lastEventSort: "", planPriceSort: "" } : {}),
+            ...(name === "lastEventSort" && value ? { firstEventSort: "", planPriceSort: "" } : {}),
+            ...(name === "planPriceSort" && value ? { firstEventSort: "", lastEventSort: "" } : {})
         }));
         setCurrentPage(1);
     };
@@ -269,9 +347,9 @@ export default function AdminPanel() {
             setExportFilters(prev => ({
                 ...prev,
                 [name]: value,
-                ...(name === "firstEventSort" && value ? { lastEventSort: "", totalSpentSort: "" } : {}),
-                ...(name === "lastEventSort" && value ? { firstEventSort: "", totalSpentSort: "" } : {}),
-                ...(name === "totalSpentSort" && value ? { firstEventSort: "", lastEventSort: "" } : {})
+                ...(name === "firstEventSort" && value ? { lastEventSort: "", planPriceSort: "" } : {}),
+                ...(name === "lastEventSort" && value ? { firstEventSort: "", planPriceSort: "" } : {}),
+                ...(name === "planPriceSort" && value ? { firstEventSort: "", lastEventSort: "" } : {})
             }));
         }
     };
@@ -290,7 +368,9 @@ export default function AdminPanel() {
             eventStatus: isExport ? [] : "",
             firstEventSort: "",
             lastEventSort: "",
-            totalSpentSort: ""
+            firstEventSort: "",
+            lastEventSort: "",
+            planPriceSort: ""
         };
         if (!isExport) setFilters(defaultFilters);
         else setExportFilters(defaultFilters);

@@ -68,9 +68,24 @@ const DetailModal = ({ item, onClose }) => {
                 </div>
 
                 <div className="sheet-body sheet-scroll-area">
-                    <span className="section-label">
-                        {activeTab === "all" ? "COMPLETE EVENT LOG" : "SUBSCRIPTION RELATED EVENTS"}
-                    </span>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                        <span className="section-label" style={{ marginBottom: 0 }}>
+                            {activeTab === "all" ? "COMPLETE EVENT LOG" : "SUBSCRIPTION RELATED EVENTS"}
+                        </span>
+                        {activeTab === "subscription" && (
+                            <span style={{
+                                fontSize: '0.85rem',
+                                fontWeight: '700',
+                                color: '#059669',
+                                backgroundColor: '#ecfdf5',
+                                padding: '6px 12px',
+                                borderRadius: '8px',
+                                border: '1px solid #d1fae5'
+                            }}>
+                                Total Spent: ${item.totalSpent?.toFixed(2) || "0.00"}
+                            </span>
+                        )}
+                    </div>
                     <div>
                         <table className="detail-table">
                             <thead>
@@ -86,11 +101,7 @@ const DetailModal = ({ item, onClose }) => {
                                         <tr key={idx}>
                                             <td>
                                                 <div className="detail-event-name">{ev.event}</div>
-                                                {activeTab === "all" && idx === 0 && (
-                                                    <span className="latest-badge">
-                                                        Latest
-                                                    </span>
-                                                )}
+
                                             </td>
                                             <td className="detail-date">
                                                 <div>{ev.date}</div>
