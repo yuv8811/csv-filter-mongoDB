@@ -2342,9 +2342,42 @@ body {
 .sortable-th {
     cursor: pointer;
     user-select: none;
-    transition: background-color 0.2s ease;
+    transition: all 0.2s ease;
+    padding: 1rem 1.5rem;
+    /* Ensure matching padding with other th */
+    position: relative;
+    white-space: nowrap;
 }
 
 .sortable-th:hover {
     background-color: #f1f5f9;
+    color: var(--primary);
+}
+
+.sortable-th.active {
+    background-color: #eff6ff;
+    /* Light blue background for active */
+    color: var(--primary);
+    border-bottom: 2px solid var(--primary);
+}
+
+.sort-icon-wrapper {
+    display: inline-flex;
+    flex-direction: column;
+    height: 14px;
+    width: 14px;
+    justify-content: center;
+    align-items: center;
+    margin-left: 8px;
+    opacity: 0.3;
+    transition: all 0.2s ease;
+}
+
+.sortable-th:hover .sort-icon-wrapper {
+    opacity: 0.7;
+}
+
+.sortable-th.active .sort-icon-wrapper {
+    opacity: 1;
+    transform: scale(1.1);
 }
