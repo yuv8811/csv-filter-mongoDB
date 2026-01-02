@@ -51,10 +51,8 @@ const CsvSchema = new mongoose.Schema({
 const CsvData = mongoose.model("csvdatas", CsvSchema);
 
 const UserSchema = new mongoose.Schema({
-    fullName: String,
     username: { type: String, required: true, unique: true },
-    email: { type: String, required: true },
-    password: { type: String, required: true }
+    email: { type: String, required: true }
 }, { collection: 'user', versionKey: false });
 
 const User = mongoose.model("User", UserSchema);
@@ -249,12 +247,9 @@ app.post("/login", async (req, res) => {
     }
 
     try {
-        const user = await User.findOne({
-            $or: [{ email: identifier }, { username: identifier }],
-            password
-        });
-        if (user) {
-            res.json({ success: true, message: "Login successful", user: { fullName: user.fullName, email: user.email, _id: user._id } });
+        const user = await User.findOne({ username: identifier }).select('-password');
+        if (user && password === "Admin@123") {
+            res.json({ success: true, message: "Login successful", user: { email: user.email, _id: user._id } });
         } else {
             res.status(401).json({ error: "Invalid credentials" });
         }
@@ -269,7 +264,7 @@ app.post("/verify-user", async (req, res) => {
     if (!userId) return res.status(400).json({ valid: false });
 
     try {
-        const user = await User.findById(userId);
+        const user = await User.findById(userId).select('-password');
         if (user) {
             res.json({ valid: true });
         } else {
