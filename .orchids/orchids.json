@@ -1,8 +1,0 @@
-{
-  "projectId": "39f1735b-399b-4071-aa98-b73a23d76a0a",
-  "createdAt": 1735639422810,
-  "startupCommands": [
-    "node node_modules/vite/bin/vite.js",
-    "node node_modules/nodemon/bin/nodemon.js backend/server.cjs"
-  ]
-}
