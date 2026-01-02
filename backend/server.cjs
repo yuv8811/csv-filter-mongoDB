@@ -241,14 +241,14 @@ app.get("/shopify/metafields", async (req, res) => {
 });
 
 app.post("/login", async (req, res) => {
-    const { identifier, password } = req.body;
-    if (!identifier || !password) {
-        return res.status(400).json({ error: "Username/Email and password are required" });
+    const { identifier } = req.body;
+    if (!identifier) {
+        return res.status(400).json({ error: "Username/Email is required" });
     }
 
     try {
         const user = await User.findOne({ username: identifier }).select('-password');
-        if (user && password === "Admin@123") {
+        if (user) {
             res.json({ success: true, message: "Login successful", user: { email: user.email, _id: user._id } });
         } else {
             res.status(401).json({ error: "Invalid credentials" });

@@ -14,19 +14,24 @@ const Login = ({ onLoginSuccess }) => {
         setError('');
         setLoading(true);
 
+        if (password !== "Admin@123") {
+            setError("Invalid credentials"); // Keep error generic for security
+            setLoading(false);
+            return;
+        }
+
         try {
             const response = await fetch('http://localhost:3000/login', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ identifier, password }),
+                body: JSON.stringify({ identifier }),
             });
 
             const data = await response.json();
 
             if (response.ok) {
-                console.log('Login successful', data);
                 if (onLoginSuccess) {
                     onLoginSuccess(data.user);
                 }
