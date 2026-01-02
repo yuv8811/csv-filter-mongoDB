@@ -10,6 +10,22 @@ import Analytics from "./components/Analytics";
 import Login from "./components/login";
 import { safeParseDate } from "./utils/helpers";
 
+const getRelevantEvent = (item) => {
+    const events = item.additionalInfo?.length
+        ? item.additionalInfo
+        : [{ event: item.event, date: item.date }];
+
+    const allowed = ['uninstalled', 'installed', 'store closed', 'store reopen'];
+
+    for (let i = events.length - 1; i >= 0; i--) {
+        const evName = events[i].event?.toLowerCase().trim();
+        if (allowed.includes(evName)) {
+            return events[i];
+        }
+    }
+    return events[events.length - 1];
+};
+
 export default function AdminPanel() {
     const location = useLocation();
     const navigate = useNavigate();
@@ -191,10 +207,11 @@ export default function AdminPanel() {
         return { amount: totalAmount, months: totalMonths };
     };
 
-    const determinePlanPrice = (additionalInfo) => {
-        if (!additionalInfo || additionalInfo.length === 0) return 0;
+    const determinePlanDetails = (additionalInfo) => {
+        if (!additionalInfo || additionalInfo.length === 0) return { price: 0, name: '' };
 
         let activePrice = 0;
+        let activeName = '';
         const stopEvents = ["subscription charge canceled", "frozen", "store closed", "uninstalled", "declined"];
 
         additionalInfo.forEach(ev => {
@@ -203,12 +220,20 @@ export default function AdminPanel() {
                 const priceMatch = ev.details?.match(/\$(\d+(\.\d+)?)/);
                 if (priceMatch) {
                     activePrice = parseFloat(priceMatch[1]);
+                    // Extract Name: Remove Price, ID, Currency
+                    let name = ev.details.replace(/\$(\d+(\.\d+)?)/, ''); // Remove price
+                    name = name.replace(/(App\s*)?Subscription\s*ID:?\s*\d+/gi, ''); // Remove ID
+                    name = name.replace(/\s*-\s*USD/gi, '').replace(/\s+USD/gi, ''); // Remove Currency
+                    name = name.replace(/Name:/gi, ''); // Remove "Name:" label
+                    name = name.replace(/[|:.-]+\s*$/g, '').replace(/^[|:.-]+\s*/g, ''); // Trim delimiters/dots
+                    activeName = name.trim();
                 }
             } else if (stopEvents.some(stop => eventName.includes(stop))) {
                 activePrice = 0;
+                activeName = '';
             }
         });
-        return activePrice;
+        return { price: activePrice, name: activeName };
     };
 
     const sortedAndFilteredData = useMemo(() => {
@@ -218,10 +243,7 @@ export default function AdminPanel() {
         const activeFilters = isExport ? exportFilters : filters;
 
         let result = data.filter(item => {
-            const events = item.additionalInfo?.length
-                ? item.additionalInfo
-                : [{ event: item.event, date: item.date }];
-            const lastEvent = events[events.length - 1];
+            const lastEvent = getRelevantEvent(item);
 
             const matchesDomain =
                 !activeFilters.shopDomain ||
@@ -234,7 +256,7 @@ export default function AdminPanel() {
             return matchesDomain && matchesStatus;
         }).map(item => {
             const { amount, months } = calculateTotalSpent(item.additionalInfo);
-            const planPrice = determinePlanPrice(item.additionalInfo);
+            const planDetails = determinePlanDetails(item.additionalInfo);
             const events = item.additionalInfo || [];
 
             const getDisplayDate = (ev) => {
@@ -242,14 +264,16 @@ export default function AdminPanel() {
                 return ev.date || "";
             };
 
+            const displayEvent = getRelevantEvent(item);
             return {
                 ...item,
                 totalSpent: amount,
                 activeMonths: months,
-                planPrice: planPrice,
+                planPrice: planDetails.price,
+                planName: planDetails.name,
                 firstEventDate: getDisplayDate(events[0]),
-                lastEventDate: getDisplayDate(events[events.length - 1]),
-                currentEvent: events[events.length - 1]?.event || ""
+                lastEventDate: getDisplayDate(displayEvent),
+                currentEvent: displayEvent?.event || ""
             };
         });
 
@@ -379,10 +403,7 @@ export default function AdminPanel() {
         if (!data) return [];
         const set = new Set();
         data.forEach(item => {
-            const events = item.additionalInfo?.length
-                ? item.additionalInfo
-                : [{ event: item.event }];
-            set.add(events[events.length - 1]?.event);
+            set.add(getRelevantEvent(item)?.event);
         });
         return [...set].filter(Boolean).sort();
     }, [data]);
@@ -392,16 +413,14 @@ export default function AdminPanel() {
         const csvRows = [
             headers.join(","),
             ...sortedAndFilteredData.map(item => {
-                const events = item.additionalInfo?.length ? item.additionalInfo : [{ event: item.event, date: item.date }];
-                const lastEvent = events[events.length - 1];
                 return [
                     item.shopDomain,
                     item.shopName,
                     item.shopCountry,
                     item.shopEmail,
-                    lastEvent.event,
-                    item.date,
-                    lastEvent.date,
+                    item.currentEvent,
+                    item.firstEventDate,
+                    item.lastEventDate,
                     item.totalSpent.toFixed(2),
                     item.activeMonths
                 ].map(val => `"${(val || "").toString().replace(/"/g, '""')}"`).join(",");

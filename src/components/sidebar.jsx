@@ -21,40 +21,8 @@ const Sidebar = ({ onLogout }) => {
                     </svg>
                     Database Records
                 </NavLink>
-                <NavLink
-                    to="/import"
-                    className={({ isActive }) => `tab-button ${isActive ? "active" : ""}`}
-                >
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                        <polyline points="17 8 12 3 7 8" />
-                        <line x1="12" y1="3" x2="12" y2="15" />
-                    </svg>
-                    Import Center
-                </NavLink>
-                <NavLink
-                    to="/export"
-                    className={({ isActive }) => `tab-button ${isActive ? "active" : ""}`}
-                >
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                        <polyline points="7 10 12 15 17 10" />
-                        <line x1="12" y1="15" x2="12" y2="3" />
-                    </svg>
-                    Export Center
-                </NavLink>
-                <NavLink
-                    to="/analytics"
-                    className={({ isActive }) => `tab-button ${isActive ? "active" : ""}`}
-                >
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                        <line x1="18" y1="20" x2="18" y2="10"></line>
-                        <line x1="12" y1="20" x2="12" y2="4"></line>
-                        <line x1="6" y1="20" x2="6" y2="14"></line>
-                    </svg>
-                    Analytics
-                </NavLink>
-                <NavLink
+
+                {/* <NavLink
                     to="/metafields"
                     className={({ isActive }) => `tab-button ${isActive ? "active" : ""}`}
                 >
@@ -65,7 +33,7 @@ const Sidebar = ({ onLogout }) => {
                         <line x1="8" y1="11" x2="14" y2="11" />
                     </svg>
                     Metafield Search
-                </NavLink>
+                </NavLink> */}
                 <button
                     className="tab-button logout-button"
                     onClick={onLogout}

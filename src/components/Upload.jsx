@@ -80,16 +80,28 @@ function Upload({ onSuccess }) {
         }
     };
 
-    return (
-        <div className="app-container">
-            <div className="upload-card">
-                <header className="header">
-                    <h1>Upload CSV</h1>
-                    <p>Organize, filter, and transform your data in seconds.</p>
-                </header>
 
+    return (
+        <div className="analytics-container fade-in" style={{ padding: '2rem', width: '100%', maxWidth: '1200px', margin: '0 auto' }}>
+            <div className="data-header">
+                <div className="data-header-left">
+                    <div className="data-header-title" style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                        <button className="back-button" onClick={() => navigate("/")} aria-label="Back to Dashboard">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                <line x1="19" y1="12" x2="5" y2="12"></line>
+                                <polyline points="12 19 5 12 12 5"></polyline>
+                            </svg>
+                        </button>
+                        <div>
+                            <h1 style={{ fontSize: '2rem', fontWeight: '800', color: '#1e293b', margin: 0 }}>Upload CSV</h1>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div className="upload-container-card" style={{ background: 'white', padding: '3rem', borderRadius: '16px', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', minHeight: '400px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
                 {!result ? (
-                    <>
+                    <div style={{ width: '100%', maxWidth: '600px' }}>
                         <div
                             className={`drop-zone ${isDragging ? "dragging" : ""}`}
                             onDragOver={handleDragOver}
@@ -97,7 +109,7 @@ function Upload({ onSuccess }) {
                             onDrop={handleDrop}>
                             <div className="drop-zone-content">
                                 <div className="upload-icon">
-                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                         <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
                                         <polyline points="17 8 12 3 7 8" />
                                         <line x1="12" y1="3" x2="12" y2="15" />
@@ -113,12 +125,12 @@ function Upload({ onSuccess }) {
 
                         {file && <div className="file-info">Selected: {file.name}</div>}
 
-                        <button className="upload-button" disabled={!file || loading} onClick={handleUpload}>
+                        <button className="upload-button" disabled={!file || loading} onClick={handleUpload} style={{ marginTop: '1.5rem' }}>
                             {loading ? 'Processing...' : (file ? 'Refine Data' : 'Upload CSV')}
                         </button>
-                    </>
+                    </div>
                 ) : (
-                    <div className="upload-results-summary upload-results-card">
+                    <div className="upload-results-summary upload-results-card" style={{ width: '100%', maxWidth: '500px', margin: '0 auto', boxShadow: 'none', border: '1px solid #e2e8f0' }}>
                         <div className="upload-success-header">
                             <div className="upload-success-title">
                                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">

@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import CustomDropdown from "./CustomDropdown";
 
 const ExportEngine = ({
@@ -10,8 +11,11 @@ const ExportEngine = ({
     recordCount,
     onExport
 }) => {
-    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+    const isDropdownOpenState = useState(false);
+    const isDropdownOpen = isDropdownOpenState[0];
+    const setIsDropdownOpen = isDropdownOpenState[1];
     const dropdownRef = useRef(null);
+    const navigate = useNavigate();
 
     useEffect(() => {
         const handleClickOutside = (event) => {
@@ -32,9 +36,17 @@ const ExportEngine = ({
 
     return (
         <div className="export-container">
-            <header className="export-header">
-                <h2>Data Export</h2>
-                <p>Configure filters below to extract specific segments of your database.</p>
+            <header className="export-header" style={{ display: 'flex', alignItems: 'flex-start', gap: '1rem', marginBottom: '1.5rem', borderBottom: 'none', paddingBottom: '0' }}>
+                <button className="back-button" onClick={() => navigate("/")} aria-label="Back to Dashboard" style={{ marginTop: '0.25rem' }}>
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <line x1="19" y1="12" x2="5" y2="12"></line>
+                        <polyline points="12 19 5 12 12 5"></polyline>
+                    </svg>
+                </button>
+                <div>
+                    <h2 style={{ lineHeight: 1.2, marginBottom: '0.5rem' }}>Data Export</h2>
+                    <p>Configure filters below to extract specific segments of your database.</p>
+                </div>
             </header>
 
             <div className="export-grid">

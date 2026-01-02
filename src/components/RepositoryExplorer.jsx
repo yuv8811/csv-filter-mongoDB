@@ -63,7 +63,6 @@ const RepositoryExplorer = ({
     totalAmount
 }) => {
 
-
     return (
         <div className="repository-container">
             <div className="data-header">
@@ -74,9 +73,9 @@ const RepositoryExplorer = ({
                             <p className="repo-stat-line">
                                 Total Stores: <strong>{originalDataCount}</strong>
                             </p>
-                            <p className="repo-stat-line">
+                            {/* <p className="repo-stat-line">
                                 Total Amount: <strong>${totalAmount?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong>
-                            </p>
+                            </p> */}
                         </div>
                     </div>
                 </div>
@@ -98,7 +97,7 @@ const RepositoryExplorer = ({
                             <th>Shop Domain</th>
                             <th>Status</th>
                             <SortHeader
-                                label="Plan Price"
+                                label="Plan"
                                 sortKey="planPriceSort"
                                 currentSort={filters.planPriceSort}
                                 onSort={(key, val) => handleFilterChange({ target: { name: key, value: val } })}
@@ -125,7 +124,14 @@ const RepositoryExplorer = ({
                                     <td className="font-semibold custom-table-td">{item.shopDomain}</td>
                                     <td><span className={`event-badge status-${item.currentEvent?.toLowerCase()}`}>{item.currentEvent}</span></td>
                                     <td className="font-semibold text-primary">
-                                        ${item.planPrice?.toFixed(2)}
+                                        {item.planPrice > 0 ? (
+                                            <div style={{ display: 'flex', flexDirection: 'column', lineHeight: '1.4', fontSize: '11px' }}>
+                                                <div>Name :- {item.planName}</div>
+                                                <div>Price :- ${item.planPrice.toFixed(2)}</div>
+                                            </div>
+                                        ) : (
+                                            <span className="text-muted">-</span>
+                                        )}
                                     </td>
                                     <td className="font-mono-muted">
                                         {item.firstEventDate}

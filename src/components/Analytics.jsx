@@ -1,4 +1,5 @@
 import React, { useMemo, useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { ResponsiveBar } from '@nivo/bar';
 import { ResponsiveBump } from '@nivo/bump';
 import { ResponsivePie } from '@nivo/pie';
@@ -127,7 +128,8 @@ const CHART_THEME = {
 };
 
 const Analytics = ({ data }) => {
-    // Main Chart Filter State
+    const navigate = useNavigate();
+    // Subscription Chart Filter State
     const [chartType, setChartType] = useState('bar');
     const [mainPreset, setMainPreset] = useState('all');
     const [mainStartDate, setMainStartDate] = useState('');
@@ -844,10 +846,14 @@ const Analytics = ({ data }) => {
         <div className="analytics-container fade-in" style={{ padding: '2rem', width: '100%', maxWidth: '1200px', margin: '0 auto' }}>
             <div className="data-header">
                 <div className="data-header-left">
-                    <div className="data-header-title">
-                        <div className="data-header-title">
-                            <h1 style={{ fontSize: '2rem', fontWeight: '800', color: '#1e293b' }}>Analytics Dashboard</h1>
-                        </div>
+                    <div className="data-header-title" style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                        <button className="back-button" onClick={() => navigate("/")} aria-label="Back to Dashboard">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                <line x1="19" y1="12" x2="5" y2="12"></line>
+                                <polyline points="12 19 5 12 12 5"></polyline>
+                            </svg>
+                        </button>
+                        <h1 style={{ fontSize: '2rem', fontWeight: '800', color: '#1e293b', margin: 0 }}>Analytics Dashboard</h1>
                     </div>
                 </div>
             </div>
