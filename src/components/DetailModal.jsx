@@ -1,134 +1,170 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
+import './DetailModal.css';
 
 const DetailModal = ({ item, onClose }) => {
-    const [activeTab, setActiveTab] = useState("all"); // "all" or "subscription"
+    const [activeTab, setActiveTab] = useState('all');
+    const [searchTerm, setSearchTerm] = useState('');
 
     if (!item) return null;
 
-    const allEvents = item.additionalInfo?.length
-        ? item.additionalInfo
-        : [{ event: item.event, date: item.date }];
+    // Helper to format date nicely
+    const formatDate = (dateString, includeTime = true) => {
+        if (!dateString) return '';
+        try {
+            const options = { year: 'numeric', month: 'short', day: 'numeric' };
+            if (includeTime) {
+                options.hour = '2-digit';
+                options.minute = '2-digit';
+            }
+            return new Date(dateString).toLocaleDateString('en-US', options);
+        } catch (e) {
+            return dateString;
+        }
+    };
 
-    const subscriptionKeywords = [
-        'subscription',
-        'frozen',
-        'closed',
-        'activate',
-        'cancel',
-        'decline'
-    ];
+    // Filter Logic
+    const history = item.additionalInfo || [];
+    const filteredHistory = history.filter(event => {
+        const matchesSearch =
+            (event.event || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+            (event.details || '').toLowerCase().includes(searchTerm.toLowerCase());
 
-    const subscriptionEvents = allEvents.filter(ev => {
-        const eventName = (ev.event || "").toLowerCase();
-        return subscriptionKeywords.some(key => eventName.includes(key));
+        if (activeTab === 'subscription') {
+            const subKeywords = ['subscription', 'charge', 'activate', 'frozen', 'cancel'];
+            const isSub = subKeywords.some(k => (event.event || '').toLowerCase().includes(k));
+            return matchesSearch && isSub;
+        }
+
+        return matchesSearch;
     });
 
-    const displayEvents = activeTab === "all" ? allEvents : subscriptionEvents;
+    // Icons
+    const Icons = {
+        email: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>,
+        phone: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>,
+        user: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>,
+        map: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"></polygon><line x1="8" y1="2" x2="8" y2="18"></line><line x1="16" y1="6" x2="16" y2="22"></line></svg>,
+        tag: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>,
+        id: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="16" rx="3"></rect><circle cx="12" cy="10" r="2"></circle><line x1="8" y1="2" x2="8" y2="4"></line><line x1="16" y1="2" x2="16" y2="4"></line></svg>,
+        link: <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>,
+        search: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>,
+        store: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 3h18v18H3zM3 9h18M9 21V9"></path></svg>
+    };
+
+    const getEventStyle = (text) => {
+        const t = (text || '').toLowerCase();
+        // Identify subscription events for specific card styling
+        if (t.includes('subscription') && t.includes('activated')) return 'subscription-active';
+        return 'default';
+    };
 
     return (
-        <div className="modal-overlay" onClick={onClose}>
-            <div className="detail-sheet" onClick={e => e.stopPropagation()}>
-                <div className="sheet-header">
-                    <div className="sheet-title-area">
-                        <h2>{item.shopName || item.shopDomain}</h2>
-                        <p>Detailed Event Audit</p>
-                    </div>
-                    <button className="filter-icon-button" onClick={onClose}>
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <line x1="18" y1="6" x2="6" y2="18" />
-                            <line x1="6" y1="6" x2="18" y2="18" />
-                        </svg>
-                    </button>
-                </div>
+        <div className="dm-overlay" onClick={onClose}>
+            <div className="dm-modal" onClick={e => e.stopPropagation()}>
+                <div className="dm-split-layout">
+                    {/* LEFT SIDEBAR - PROFILE */}
+                    <div className="dm-sidebar">
+                        <div className="dm-profile-header">
+                            <h2 className="dm-shop-name">{item.shopName || "Unknown Shop"}</h2>
+                            <a href={`https://${item.shopDomain}`} target="_blank" rel="noopener noreferrer" className="dm-shop-domain">
+                                {item.shopDomain} {Icons.link}
+                            </a>
+                        </div>
 
-                <div className="sheet-metadata">
-                    <div className="metadata-item">
-                        <label>Domain</label>
-                        <span>{item.shopDomain}</span>
-                    </div>
-                    <div className="metadata-item">
-                        <label>Email</label>
-                        <span>{item.shopEmail || "N/A"}</span>
-                    </div>
-                </div>
+                        <div className="dm-info-group">
+                            <h3 className="dm-group-title">Contact & Details</h3>
 
-                <div className="detail-tabs-container">
-                    <button
-                        onClick={() => setActiveTab("all")}
-                        className={`detail-tab-btn ${activeTab === "all" ? "active" : ""}`}
-                    >
-                        All Events ({allEvents.length})
-                    </button>
-                    <button
-                        onClick={() => setActiveTab("subscription")}
-                        className={`detail-tab-btn ${activeTab === "subscription" ? "active" : ""}`}
-                    >
-                        Subscription Only ({subscriptionEvents.length})
-                    </button>
-                </div>
+                            {[
+                                { label: 'Owner', value: item.shop_owner, icon: Icons.user, key: 'owner' },
+                                { label: 'Email', value: item.shopEmail, icon: Icons.email, key: 'email' },
+                                { label: 'Phone', value: item.phone, icon: Icons.phone, key: 'phone' },
+                                { label: 'Country', value: item.shopCountry, icon: Icons.map, key: 'country' },
+                                { label: 'Store type', value: item.shop_type, icon: Icons.store, key: 'type' },
+                                { label: 'Customers', value: item.customer, icon: Icons.user, key: 'id' },
+                            ].map((field) => (
+                                <div
+                                    className="dm-info-row"
+                                    key={field.key}
+                                >
+                                    <span className="dm-info-icon">{field.icon}</span>
+                                    <div className="dm-info-content">
+                                        <label>{field.label}</label>
+                                        <div className="dm-value-wrapper">
+                                            <span>{field.value || '-'}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
 
-                <div className="sheet-body sheet-scroll-area">
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                        <span className="section-label" style={{ marginBottom: 0 }}>
-                            {activeTab === "all" ? "COMPLETE EVENT LOG" : "SUBSCRIPTION RELATED EVENTS"}
-                        </span>
-                        {activeTab === "subscription" && (
-                            <span style={{
-                                fontSize: '0.85rem',
-                                fontWeight: '700',
-                                color: '#059669',
-                                backgroundColor: '#ecfdf5',
-                                padding: '6px 12px',
-                                borderRadius: '8px',
-                                border: '1px solid #d1fae5'
-                            }}>
-                                Total Spent: ${item.totalSpent?.toFixed(2) || "0.00"}
-                            </span>
-                        )}
                     </div>
-                    <div>
-                        <table className="detail-table">
-                            <thead>
-                                <tr>
-                                    <th style={{ width: '35%' }}>Event</th>
-                                    <th style={{ width: '25%' }}>Date</th>
-                                    <th style={{ width: '40%' }}>Details</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {displayEvents.length > 0 ? (
-                                    displayEvents.slice().reverse().map((ev, idx) => (
-                                        <tr key={idx}>
-                                            <td>
-                                                <div className="detail-event-name">{ev.event}</div>
 
-                                            </td>
-                                            <td className="detail-date">
-                                                <div>{ev.date}</div>
-                                                {ev.billingDate && (
-                                                    <div className="billing-date">
-                                                        Bill: {ev.billingDate}
+                    {/* RIGHT CONTENT - ACTIVITY */}
+                    <div className="dm-main">
+                        <div className="dm-main-header interactive">
+                            <h3>Activity Log</h3>
+                            <div className="dm-controls">
+                                <div className="dm-tabs">
+                                    <button
+                                        className={`dm-tab ${activeTab === 'all' ? 'active' : ''}`}
+                                        onClick={() => setActiveTab('all')}
+                                    >
+                                        All
+                                    </button>
+                                    <button
+                                        className={`dm-tab ${activeTab === 'subscription' ? 'active' : ''}`}
+                                        onClick={() => setActiveTab('subscription')}
+                                    >
+                                        Subscription
+                                    </button>
+                                </div>
+                                <div className="dm-search-wrapper">
+                                    {Icons.search}
+                                    <input
+                                        type="text"
+                                        placeholder="Search events..."
+                                        value={searchTerm}
+                                        onChange={(e) => setSearchTerm(e.target.value)}
+                                        className="dm-search-input"
+                                    />
+                                </div>
+                                <button className="dm-close-floater" onClick={onClose}>
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div className="dm-scroll-area">
+                            <div className="dm-timeline-new">
+                                {filteredHistory.length > 0 ? (
+                                    filteredHistory.map((event, index) => {
+                                        const typeClass = getEventStyle(event.event);
+                                        return (
+                                            <div key={index} className={`dm-new-item ${typeClass}`}>
+                                                <div className="dm-new-date">
+                                                    <span className="dm-day">{formatDate(event.date, false)}</span>
+                                                    <span className="dm-time">{new Date(event.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })}</span>
+                                                </div>
+                                                <div className="dm-new-marker-line">
+                                                    <div className="dm-new-marker"></div>
+                                                </div>
+                                                <div className="dm-new-card">
+                                                    <div className="dm-new-card-header">
+                                                        <h4>{event.event}</h4>
+                                                        {event.billingDate && <span className="dm-billing-tag">Bill: {event.billingDate}</span>}
                                                     </div>
-                                                )}
-                                            </td>
-                                            <td className="detail-description">
-                                                {ev.details ? (
-                                                    <div className="detail-box">
-                                                        {ev.details}
-                                                    </div>
-                                                ) : "-"}
-                                            </td>
-                                        </tr>
-                                    ))
+                                                    {event.details && <p className="dm-new-details">{event.details}</p>}
+                                                </div>
+                                            </div>
+                                        );
+                                    })
                                 ) : (
-                                    <tr>
-                                        <td colSpan="3" className="no-events-message">
-                                            No events found matching criteria.
-                                        </td>
-                                    </tr>
+                                    <div className="dm-empty-state">
+                                        No events found matching your filter.
+                                    </div>
                                 )}
-                            </tbody>
-                        </table>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

@@ -250,6 +250,29 @@ body {
     letter-spacing: -0.02em;
 }
 
+.synchronize-btn {
+    font-weight: 700;
+    width: 100px;
+    height: 42px;
+    border-radius: var(--radius-sm);
+    background: white;
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.synchronize-btn:hover {
+    background: #f8fafc !important;
+    color: var(--primary) !important;
+    border-color: var(--primary) !important;
+    transform: translateY(-1px) !important;
+    box-shadow: var(--shadow-sm) !important;
+}
+
 .filter-icon-button {
     width: 42px;
     height: 42px;
@@ -265,11 +288,11 @@ body {
 }
 
 .filter-icon-button:hover {
-    background: #f8fafc;
-    color: var(--primary);
-    border-color: var(--primary);
-    transform: translateY(-1px);
-    box-shadow: var(--shadow-sm);
+    background: #f8fafc !important;
+    color: var(--primary) !important;
+    border-color: var(--primary) !important;
+    transform: translateY(-1px) !important;
+    box-shadow: var(--shadow-sm) !important;
 }
 
 .filter-icon-button.active {
@@ -755,7 +778,7 @@ body {
 
 .custom-table th {
     background: #f8fafc;
-    padding: 1rem 1.5rem;
+    padding: 1rem;
     font-size: 0.8125rem;
     font-weight: 700;
     color: var(--text-muted);
@@ -767,7 +790,7 @@ body {
 
 .custom-table td {
     padding: 1rem;
-    font-size: 12px;
+    font-size: 13px;
     color: var(--text-main);
     border-bottom: 1px solid #f1f5f9;
 }
@@ -1930,6 +1953,150 @@ body {
     font-size: 0.9rem;
 }
 
+/* Sync Modal Minimal Styles */
+.sync-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 3000;
+    backdrop-filter: blur(2px);
+    animation: fadeIn 0.2s ease-out;
+}
+
+.sync-modal-minimal {
+    background: white;
+    width: 300px;
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+    animation: scaleIn 0.2s ease-out;
+    border: 1px solid #e2e8f0;
+}
+
+.sync-content-minimal {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.sync-content-minimal.centered {
+    align-items: center;
+    text-align: center;
+}
+
+.sync-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0;
+}
+
+.sync-desc {
+    font-size: 0.8125rem;
+    color: #64748b;
+    line-height: 1.5;
+    margin: 0;
+}
+
+.sync-actions-minimal {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 4px;
+}
+
+.btn-minimal-cancel {
+    padding: 8px 12px;
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    color: #475569;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-minimal-cancel:hover {
+    background: #f8fafc;
+    color: #1e293b;
+}
+
+.btn-minimal-confirm {
+    padding: 8px 16px;
+    background: #0f172a;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-minimal-confirm:hover {
+    background: #1e293b;
+}
+
+.btn-minimal-primary {
+    padding: 8px 24px;
+    background: #0f172a;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    cursor: pointer;
+    width: 100%;
+}
+
+.spinner-minimal {
+    width: 20px;
+    height: 20px;
+    border: 2px solid #e2e8f0;
+    border-top-color: #0f172a;
+    border-radius: 50%;
+    animation: rotation 0.8s linear infinite;
+}
+
+.sync-status-text {
+    font-size: 0.8125rem;
+    color: #475569;
+    font-weight: 500;
+}
+
+.sync-success-icon {
+    width: 32px;
+    height: 32px;
+    background: #ecfdf5;
+    color: #059669;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 14px;
+    margin-bottom: 8px;
+}
+
+@keyframes scaleIn {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
 .meta-pre-block {
     margin: 0;
     background: rgba(0, 0, 0, 0.03);
@@ -1973,7 +2140,6 @@ body {
     display: flex;
     align-items: center;
     background: white;
-    border: 1px solid var(--border);
     border-radius: 12px;
     transition: all 0.2s ease;
 }
@@ -1996,7 +2162,6 @@ body {
 .modern-input {
     width: 100%;
     padding: 0.75rem 1rem;
-    border: none;
     background: transparent;
     font-size: 0.9rem;
     font-weight: 500;
@@ -2224,26 +2389,39 @@ body {
 }
 
 .auth-button {
-    margin-top: 1rem;
+    margin-top: 1.5rem;
     width: 100%;
-    padding: 0.875rem;
+    height: 48px;
+    padding: 0 1.5rem;
     background: var(--primary);
     color: white;
     border: none;
     border-radius: 12px;
-    font-weight: 600;
-    font-size: 1rem;
+    font-weight: 700;
+    font-size: 0.95rem;
+    letter-spacing: 0.01em;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    position: relative;
+    overflow: hidden;
 }
 
 .auth-button:hover {
-    background: #1d4ed8;
-    transform: translateY(-1px);
+    transform: translateY(-2px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    background: #334155;
+    /* Dark Slate for visible hover on black button */
+}
+
+.auth-button:active {
+    transform: translateY(0);
+    box-shadow: none;
+    background: #1e293b;
 }
 
 .auth-button:disabled {

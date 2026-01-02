@@ -60,7 +60,9 @@ const RepositoryExplorer = ({
     handlePageChange,
     onViewDetail,
     originalDataCount,
-    totalAmount
+    totalAmount,
+    onSynchronize,
+    isSynchronizing
 }) => {
 
     return (
@@ -86,6 +88,8 @@ const RepositoryExplorer = ({
                         handleFilterChange={handleFilterChange}
                         statuses={statuses}
                         resetFilters={resetFilters}
+                        onSynchronize={onSynchronize}
+                        isSynchronizing={isSynchronizing}
                     />
                 </div>
             </div>
@@ -102,6 +106,7 @@ const RepositoryExplorer = ({
                                 currentSort={filters.planPriceSort}
                                 onSort={(key, val) => handleFilterChange({ target: { name: key, value: val } })}
                             />
+                            <th>Plan Status</th>
                             <SortHeader
                                 label="Created On"
                                 sortKey="firstEventSort"
@@ -132,6 +137,9 @@ const RepositoryExplorer = ({
                                         ) : (
                                             <span className="text-muted">-</span>
                                         )}
+                                    </td>
+                                    <td>
+                                        {item.planStatus}
                                     </td>
                                     <td className="font-mono-muted">
                                         {item.firstEventDate}

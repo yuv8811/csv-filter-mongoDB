@@ -61,7 +61,7 @@ const Login = ({ onLoginSuccess }) => {
                     <p>Enter your credentials to access the admin panel</p>
                 </div>
 
-                <form className="auth-form" onSubmit={handleSubmit} autoComplete="off">
+                <form className="auth-form" onSubmit={handleSubmit} autoComplete="on">
                     <div className="form-group">
                         <label htmlFor="identifier">Email or Username</label>
                         <div className="modern-input-wrapper">
@@ -73,7 +73,7 @@ const Login = ({ onLoginSuccess }) => {
                                 placeholder="Enter email or username"
                                 value={identifier}
                                 onChange={(e) => setIdentifier(e.target.value)}
-                                autoComplete="off"
+                                autoComplete="username"
                             />
                         </div>
                     </div>
@@ -89,7 +89,7 @@ const Login = ({ onLoginSuccess }) => {
                                 placeholder="Enter your password"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
-                                autoComplete="new-password"
+                                autoComplete="current-password"
                                 style={{ paddingRight: '2.5rem' }}
                             />
                             <button

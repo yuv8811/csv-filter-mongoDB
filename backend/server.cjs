@@ -33,6 +33,16 @@ const connectDB = async (retryCount = 5) => {
 
 connectDB();
 
+const ShopInfoSchema = new mongoose.Schema({
+    shop: String,
+    phone: String,
+    customer: Number,
+    shop_owner: String,
+    shop_type: String
+}, { collection: 'shop_info', strict: false });
+
+const ShopInfo = mongoose.model("ShopInfo", ShopInfoSchema);
+
 const CsvSchema = new mongoose.Schema({
     shopDomain: { type: String, unique: true, required: true },
     shopName: String,
@@ -40,6 +50,10 @@ const CsvSchema = new mongoose.Schema({
     shopEmail: String,
     date: String,
     event: String,
+    phone: String,
+    customer: Number,
+    shop_owner: String,
+    shop_type: String,
     additionalInfo: [{
         date: String,
         event: String,
@@ -48,7 +62,7 @@ const CsvSchema = new mongoose.Schema({
     }]
 }, { versionKey: false });
 
-const CsvData = mongoose.model("csvdatas", CsvSchema);
+const CsvData = mongoose.model("installation", CsvSchema, "installation");
 
 const UserSchema = new mongoose.Schema({
     username: { type: String, required: true, unique: true },
@@ -71,6 +85,81 @@ const upload = multer({
 });
 
 const norm = v => (v || "").trim();
+
+app.post("/synchronize", async (req, res) => {
+    const BATCH_SIZE = 500;
+
+    try {
+        const shopInfos = await ShopInfo.find(
+            { shop: { $exists: true } },
+            { shop: 1, phone: 1, customer: 1, shop_owner: 1, shop_type: 1 }
+        ).lean();
+
+        let scannedCount = 0;
+        let updatedCount = 0;
+
+        let bulkOps = [];
+
+        for (const info of shopInfos) {
+            scannedCount++;
+
+            const setStage = {};
+
+            if (info.phone) {
+                setStage.phone = { $ifNull: ["$phone", info.phone] };
+            }
+            if (info.customer) {
+                setStage.customer = { $ifNull: ["$customer", info.customer] };
+            }
+            if (info.shop_owner) {
+                setStage.shop_owner = { $ifNull: ["$shop_owner", info.shop_owner] };
+            }
+            if (info.shop_type) {
+                setStage.shop_type = { $ifNull: ["$shop_type", info.shop_type] };
+            }
+
+            if (Object.keys(setStage).length === 0) continue;
+
+            bulkOps.push({
+                updateOne: {
+                    filter: { shopDomain: info.shop },
+                    update: [
+                        {
+                            $set: setStage
+                        }
+                    ]
+                }
+            });
+
+            if (bulkOps.length === BATCH_SIZE) {
+                const result = await CsvData.bulkWrite(bulkOps);
+                updatedCount += result.modifiedCount;
+                bulkOps = [];
+            }
+        }
+
+        if (bulkOps.length > 0) {
+            const result = await CsvData.bulkWrite(bulkOps);
+            updatedCount += result.modifiedCount;
+        }
+
+        res.json({
+            success: true,
+            scannedCount,
+            updatedCount
+        });
+
+    } catch (err) {
+        console.error("Synchronization failed:", err);
+        res.status(500).json({
+            success: false,
+            error: "Synchronization failed",
+            details: err.message
+        });
+    }
+});
+
+
 
 app.post("/upload", upload.single("file"), async (req, res) => {
     if (!req.file) return res.status(400).json({ error: "No file" });
@@ -247,7 +336,9 @@ app.post("/login", async (req, res) => {
     }
 
     try {
-        const user = await User.findOne({ username: identifier }).select('-password');
+        const user = await User.findOne({
+            $or: [{ username: identifier }, { email: identifier }]
+        }).select('-password');
         if (user) {
             res.json({ success: true, message: "Login successful", user: { email: user.email, _id: user._id } });
         } else {

@@ -8,6 +8,7 @@ import DetailModal from "./components/DetailModal";
 import MetafieldSearch from "./components/MetafieldSearch";
 import Analytics from "./components/Analytics";
 import Login from "./components/login";
+import SyncModal from "./components/SyncModal";
 import { safeParseDate } from "./utils/helpers";
 
 const getRelevantEvent = (item) => {
@@ -30,6 +31,9 @@ export default function AdminPanel() {
     const location = useLocation();
     const navigate = useNavigate();
     const [data, setData] = useState(null);
+    const [isSynchronizing, setIsSynchronizing] = useState(false);
+    const [showSyncModal, setShowSyncModal] = useState(false);
+    const [syncResult, setSyncResult] = useState(null);
     const [isAuthenticated, setIsAuthenticated] = useState(() => {
         const auth = localStorage.getItem("isAuthenticated") === "true";
         const timestamp = localStorage.getItem("loginTimestamp");
@@ -208,10 +212,11 @@ export default function AdminPanel() {
     };
 
     const determinePlanDetails = (additionalInfo) => {
-        if (!additionalInfo || additionalInfo.length === 0) return { price: 0, name: '' };
+        if (!additionalInfo || additionalInfo.length === 0) return { price: 0, name: '', status: 'Inactive' };
 
         let activePrice = 0;
         let activeName = '';
+        let status = 'Inactive';
         const stopEvents = ["subscription charge canceled", "frozen", "store closed", "uninstalled", "declined"];
 
         additionalInfo.forEach(ev => {
@@ -227,13 +232,15 @@ export default function AdminPanel() {
                     name = name.replace(/Name:/gi, ''); // Remove "Name:" label
                     name = name.replace(/[|:.-]+\s*$/g, '').replace(/^[|:.-]+\s*/g, ''); // Trim delimiters/dots
                     activeName = name.trim();
+                    status = 'Active';
                 }
             } else if (stopEvents.some(stop => eventName.includes(stop))) {
                 activePrice = 0;
                 activeName = '';
+                status = 'Inactive';
             }
         });
-        return { price: activePrice, name: activeName };
+        return { price: activePrice, name: activeName, status };
     };
 
     const sortedAndFilteredData = useMemo(() => {
@@ -260,8 +267,13 @@ export default function AdminPanel() {
             const events = item.additionalInfo || [];
 
             const getDisplayDate = (ev) => {
-                if (!ev) return "";
-                return ev.date || "";
+                if (!ev || !ev.date) return "";
+                const dateObj = safeParseDate(ev.date);
+                if (!dateObj) return "";
+                const day = String(dateObj.getDate()).padStart(2, '0');
+                const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+                const year = dateObj.getFullYear();
+                return `${day}-${month}-${year}`;
             };
 
             const displayEvent = getRelevantEvent(item);
@@ -271,8 +283,11 @@ export default function AdminPanel() {
                 activeMonths: months,
                 planPrice: planDetails.price,
                 planName: planDetails.name,
+                planStatus: planDetails.status,
                 firstEventDate: getDisplayDate(events[0]),
+                firstEventDateRaw: events[0]?.date,
                 lastEventDate: getDisplayDate(displayEvent),
+                lastEventDateRaw: displayEvent?.date,
                 currentEvent: displayEvent?.event || ""
             };
         });
@@ -295,8 +310,8 @@ export default function AdminPanel() {
 
         if (activeFilters.firstEventSort) {
             result.sort((a, b) => {
-                const timeA = getSafeTimestamp(a.firstEventDate);
-                const timeB = getSafeTimestamp(b.firstEventDate);
+                const timeA = getSafeTimestamp(a.firstEventDateRaw || a.firstEventDate);
+                const timeB = getSafeTimestamp(b.firstEventDateRaw || b.firstEventDate);
 
                 if (timeA !== timeB) {
                     return activeFilters.firstEventSort === 'asc' ? timeA - timeB : timeB - timeA;
@@ -308,8 +323,8 @@ export default function AdminPanel() {
 
         if (activeFilters.lastEventSort) {
             result.sort((a, b) => {
-                const timeA = getSafeTimestamp(a.lastEventDate);
-                const timeB = getSafeTimestamp(b.lastEventDate);
+                const timeA = getSafeTimestamp(a.lastEventDateRaw || a.lastEventDate);
+                const timeB = getSafeTimestamp(b.lastEventDateRaw || b.lastEventDate);
 
                 if (timeA !== timeB) {
                     return activeFilters.lastEventSort === 'asc' ? timeA - timeB : timeB - timeA;
@@ -439,6 +454,35 @@ export default function AdminPanel() {
     };
 
 
+
+    const handleSynchronizeClick = () => {
+        setShowSyncModal(true);
+        setSyncResult(null);
+    };
+
+    const performSync = async () => {
+        setShowSyncModal(false);
+        setIsSynchronizing(true);
+        try {
+            const res = await fetch("http://localhost:3000/synchronize", { method: "POST" });
+            const result = await res.json();
+            if (result.success) {
+                fetchData();
+                const adaptedResult = { ...result, checkedCount: result.scannedCount };
+                setSyncResult(adaptedResult);
+                setShowSyncModal(true);
+            } else {
+                console.error("Synchronization failed:", result.details || "Unknown error");
+                alert("Synchronization failed: " + (result.details || "Unknown error"));
+            }
+        } catch (err) {
+            console.error("Sync error:", err);
+            alert("Synchronization failed due to network error.");
+        } finally {
+            setIsSynchronizing(false);
+        }
+    };
+
     if (!isAuthenticated) {
         return <Login onLoginSuccess={handleLoginSuccess} />;
     }
@@ -472,6 +516,9 @@ export default function AdminPanel() {
                             handlePageChange={setCurrentPage}
                             onViewDetail={setSelectedItem}
                             originalDataCount={sortedAndFilteredData.length}
+
+                            onSynchronize={handleSynchronizeClick}
+                            isSynchronizing={isSynchronizing}
                             totalAmount={totalAmount}
                         />
                     } />
@@ -500,6 +547,13 @@ export default function AdminPanel() {
             <DetailModal
                 item={selectedItem}
                 onClose={() => setSelectedItem(null)}
+            />
+            <SyncModal
+                isOpen={showSyncModal}
+                onClose={() => setShowSyncModal(false)}
+                onConfirm={performSync}
+                isSyncing={isSynchronizing}
+                syncResult={syncResult}
             />
         </div>
     );
