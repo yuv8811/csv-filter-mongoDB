@@ -125,6 +125,7 @@ const FilterBar = ({
             </button>
             <button
                 className='synchronize-btn'
+                title='Synchronize'
                 onClick={onSynchronize}
                 disabled={isSynchronizing}
                 style={{ cursor: isSynchronizing ? 'not-allowed' : 'pointer', opacity: isSynchronizing ? 0.7 : 1 }}
