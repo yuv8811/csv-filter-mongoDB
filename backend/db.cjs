@@ -63,10 +63,23 @@ const AccessTokenSchema = new mongoose.Schema({
 
 const AccessToken = mongoose.model("AccessToken", AccessTokenSchema);
 
+const UploadHistorySchema = new mongoose.Schema({
+    fileName: String,
+    date: { type: Date, default: Date.now },
+    totalShops: Number,
+    newShops: Number,
+    updatedShops: Number,
+    status: { type: String, enum: ['Success', 'Failed'], default: 'Success' },
+    error: String
+}, { collection: 'upload_history', versionKey: false });
+
+const UploadHistory = mongoose.model("UploadHistory", UploadHistorySchema);
+
 module.exports = {
     connectDB,
     ShopInfo,
     CsvData,
     User,
-    AccessToken
+    AccessToken,
+    UploadHistory
 };

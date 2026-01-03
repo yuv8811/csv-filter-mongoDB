@@ -16,7 +16,8 @@ const {
     ShopInfo,
     CsvData,
     User,
-    AccessToken
+    AccessToken,
+    UploadHistory
 } = require("./db.cjs");
 
 connectDB();
@@ -207,11 +208,35 @@ app.post("/upload", upload.single("file"), async (req, res) => {
         };
 
 
+        await UploadHistory.create({
+            fileName: req.file.originalname,
+            totalShops: totalUniqueShops,
+            newShops: insertedCount,
+            updatedShops: updatedCount,
+            status: 'Success'
+        });
+
         res.json(finalResponse);
 
     } catch (err) {
         console.error("Upload error:", err);
+        if (req.file) {
+            await UploadHistory.create({
+                fileName: req.file.originalname,
+                status: 'Failed',
+                error: err.message
+            });
+        }
         res.status(500).json({ error: "Internal error", details: err.message });
+    }
+});
+
+app.get("/api/upload-history", async (req, res) => {
+    try {
+        const history = await UploadHistory.find().sort({ date: -1 });
+        res.json(history);
+    } catch (err) {
+        res.status(500).json({ error: "Failed to fetch history" });
     }
 });
 
