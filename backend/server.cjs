@@ -31,6 +31,7 @@ const upload = multer({
 
 const norm = v => (v || "").trim();
 
+/*
 app.post("/synchronize", async (req, res) => {
     const BATCH_SIZE = 500;
 
@@ -103,6 +104,7 @@ app.post("/synchronize", async (req, res) => {
         });
     }
 });
+*/
 
 
 

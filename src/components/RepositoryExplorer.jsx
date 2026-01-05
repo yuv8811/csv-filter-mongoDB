@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+
 import FilterBar from './FilterBar';
 
 const SortIcon = ({ direction }) => {
@@ -60,9 +60,8 @@ const RepositoryExplorer = ({
     handlePageChange,
     onViewDetail,
     originalDataCount,
-    totalAmount,
-    onSynchronize,
-    isSynchronizing
+    // onSynchronize,
+    // isSynchronizing
 }) => {
 
     return (
@@ -88,8 +87,8 @@ const RepositoryExplorer = ({
                         handleFilterChange={handleFilterChange}
                         statuses={statuses}
                         resetFilters={resetFilters}
-                        onSynchronize={onSynchronize}
-                        isSynchronizing={isSynchronizing}
+                    // onSynchronize={onSynchronize}
+                    // isSynchronizing={isSynchronizing}
                     />
                 </div>
             </div>
@@ -127,7 +126,7 @@ const RepositoryExplorer = ({
                             return (
                                 <tr key={item._id}>
                                     <td className="font-semibold custom-table-td">{item.shopDomain}</td>
-                                    <td><span className={`event-badge status-${item.currentEvent?.toLowerCase()}`}>{item.currentEvent}</span></td>
+                                    <td className='badge-container'><span className={`event-badge status-${item.currentEvent?.toLowerCase()}`}>{item.currentEvent}</span></td>
                                     <td className="font-semibold text-primary">
                                         {item.planPrice > 0 ? (
                                             <div style={{ display: 'flex', flexDirection: 'column', lineHeight: '1.4', fontSize: '11px' }}>

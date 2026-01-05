@@ -85,7 +85,7 @@ function Upload({ onSuccess }) {
             if (contentType && contentType.includes("application/json")) {
                 resData = await response.json();
             } else {
-                const text = await response.text();
+                const _text = await response.text();
                 throw new Error(`Server returned non-JSON: ${response.status}`);
             }
 
@@ -227,7 +227,7 @@ function Upload({ onSuccess }) {
                             </button>
                         ) : (
                             <>
-                                <button className="btn-secondary" onClick={() => setResult(null)}>
+                                <button className="btn-secondary" onClick={handleRemoveFile}>
                                     Upload Another
                                 </button>
                                 <button className="btn-primary" onClick={handleProceed}>

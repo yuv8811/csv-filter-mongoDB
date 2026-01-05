@@ -8,7 +8,7 @@ import DetailModal from "./components/DetailModal";
 import MetafieldSearch from "./components/MetafieldSearch";
 import Analytics from "./components/Analytics";
 import Login from "./components/login";
-import SyncModal from "./components/SyncModal";
+// import SyncModal from "./components/SyncModal";
 import { safeParseDate } from "./utils/helpers";
 
 const getRelevantEvent = (item) => {
@@ -31,9 +31,9 @@ export default function AdminPanel() {
     const location = useLocation();
     const navigate = useNavigate();
     const [data, setData] = useState(null);
-    const [isSynchronizing, setIsSynchronizing] = useState(false);
-    const [showSyncModal, setShowSyncModal] = useState(false);
-    const [syncResult, setSyncResult] = useState(null);
+    // const [isSynchronizing, setIsSynchronizing] = useState(false);
+    // const [showSyncModal, setShowSyncModal] = useState(false);
+    // const [syncResult, setSyncResult] = useState(null);
     const [isAuthenticated, setIsAuthenticated] = useState(() => {
         const auth = localStorage.getItem("isAuthenticated") === "true";
         const timestamp = localStorage.getItem("loginTimestamp");
@@ -455,6 +455,7 @@ export default function AdminPanel() {
 
 
 
+    /*
     const handleSynchronizeClick = () => {
         setShowSyncModal(true);
         setSyncResult(null);
@@ -482,6 +483,7 @@ export default function AdminPanel() {
             setIsSynchronizing(false);
         }
     };
+    */
 
     if (!isAuthenticated) {
         return <Login onLoginSuccess={handleLoginSuccess} />;
@@ -517,8 +519,8 @@ export default function AdminPanel() {
                             onViewDetail={setSelectedItem}
                             originalDataCount={sortedAndFilteredData.length}
 
-                            onSynchronize={handleSynchronizeClick}
-                            isSynchronizing={isSynchronizing}
+                            // onSynchronize={handleSynchronizeClick}
+                            // isSynchronizing={isSynchronizing}
                             totalAmount={totalAmount}
                         />
                     } />
@@ -548,13 +550,13 @@ export default function AdminPanel() {
                 item={selectedItem}
                 onClose={() => setSelectedItem(null)}
             />
-            <SyncModal
+            {/* <SyncModal
                 isOpen={showSyncModal}
                 onClose={() => setShowSyncModal(false)}
                 onConfirm={performSync}
                 isSyncing={isSynchronizing}
                 syncResult={syncResult}
-            />
+            /> */}
         </div>
     );
 }
