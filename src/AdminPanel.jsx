@@ -8,7 +8,7 @@ import DetailModal from "./components/DetailModal";
 import MetafieldSearch from "./components/MetafieldSearch";
 import Analytics from "./components/Analytics";
 import Login from "./components/login";
-// import SyncModal from "./components/SyncModal";
+
 import { safeParseDate } from "./utils/helpers";
 
 const getRelevantEvent = (item) => {
@@ -31,9 +31,7 @@ export default function AdminPanel() {
     const location = useLocation();
     const navigate = useNavigate();
     const [data, setData] = useState(null);
-    // const [isSynchronizing, setIsSynchronizing] = useState(false);
-    // const [showSyncModal, setShowSyncModal] = useState(false);
-    // const [syncResult, setSyncResult] = useState(null);
+
     const [isAuthenticated, setIsAuthenticated] = useState(() => {
         const auth = localStorage.getItem("isAuthenticated") === "true";
         const timestamp = localStorage.getItem("loginTimestamp");
@@ -46,7 +44,6 @@ export default function AdminPanel() {
                 return true;
             }
         }
-        // If we get here, it's either not auth or expired
         localStorage.removeItem("isAuthenticated");
         localStorage.removeItem("loginTimestamp");
         localStorage.removeItem("userId");
@@ -95,15 +92,11 @@ export default function AdminPanel() {
 
         checkAuth();
         checkAuth();
-        const interval = setInterval(checkAuth, 5000); // Check every 5 seconds
+        const interval = setInterval(checkAuth, 5000);
         return () => clearInterval(interval);
     }, [isAuthenticated, location.pathname]);
 
-    // ... (existing state definitions) ...
     const [currentPage, setCurrentPage] = useState(1);
-    // ...
-
-    // ... (near the end of the file) ...
 
     const handleLoginSuccess = (user) => {
         localStorage.setItem("isAuthenticated", "true");
@@ -225,12 +218,11 @@ export default function AdminPanel() {
                 const priceMatch = ev.details?.match(/\$(\d+(\.\d+)?)/);
                 if (priceMatch) {
                     activePrice = parseFloat(priceMatch[1]);
-                    // Extract Name: Remove Price, ID, Currency
-                    let name = ev.details.replace(/\$(\d+(\.\d+)?)/, ''); // Remove price
-                    name = name.replace(/(App\s*)?Subscription\s*ID:?\s*\d+/gi, ''); // Remove ID
-                    name = name.replace(/\s*-\s*USD/gi, '').replace(/\s+USD/gi, ''); // Remove Currency
-                    name = name.replace(/Name:/gi, ''); // Remove "Name:" label
-                    name = name.replace(/[|:.-]+\s*$/g, '').replace(/^[|:.-]+\s*/g, ''); // Trim delimiters/dots
+                    let name = ev.details.replace(/\$(\d+(\.\d+)?)/, '');
+                    name = name.replace(/(App\s*)?Subscription\s*ID:?\s*\d+/gi, '');
+                    name = name.replace(/\s*-\s*USD/gi, '').replace(/\s+USD/gi, '');
+                    name = name.replace(/Name:/gi, '');
+                    name = name.replace(/[|:.-]+\s*$/g, '').replace(/^[|:.-]+\s*/g, '');
                     activeName = name.trim();
                     status = 'Active';
                 }
@@ -245,7 +237,6 @@ export default function AdminPanel() {
 
     const sortedAndFilteredData = useMemo(() => {
         if (!data) return [];
-        // Determine active filter set based on path
         const isExport = location.pathname.includes("export");
         const activeFilters = isExport ? exportFilters : filters;
 
@@ -296,7 +287,7 @@ export default function AdminPanel() {
 
         const compareValues = (a, b, sortDir) => {
             if (a === b) return 0;
-            if (a === null || a === undefined) return 1; // Move nulls to end
+            if (a === null || a === undefined) return 1;
             if (b === null || b === undefined) return -1;
 
             if (sortDir === 'asc') return a < b ? -1 : 1;
@@ -316,7 +307,6 @@ export default function AdminPanel() {
                 if (timeA !== timeB) {
                     return activeFilters.firstEventSort === 'asc' ? timeA - timeB : timeB - timeA;
                 }
-                // Stable sort tie-breaker
                 return (a._id || '').localeCompare(b._id || '');
             });
         }
@@ -455,35 +445,7 @@ export default function AdminPanel() {
 
 
 
-    /*
-    const handleSynchronizeClick = () => {
-        setShowSyncModal(true);
-        setSyncResult(null);
-    };
 
-    const performSync = async () => {
-        setShowSyncModal(false);
-        setIsSynchronizing(true);
-        try {
-            const res = await fetch("http://localhost:3000/synchronize", { method: "POST" });
-            const result = await res.json();
-            if (result.success) {
-                fetchData();
-                const adaptedResult = { ...result, checkedCount: result.scannedCount };
-                setSyncResult(adaptedResult);
-                setShowSyncModal(true);
-            } else {
-                console.error("Synchronization failed:", result.details || "Unknown error");
-                alert("Synchronization failed: " + (result.details || "Unknown error"));
-            }
-        } catch (err) {
-            console.error("Sync error:", err);
-            alert("Synchronization failed due to network error.");
-        } finally {
-            setIsSynchronizing(false);
-        }
-    };
-    */
 
     if (!isAuthenticated) {
         return <Login onLoginSuccess={handleLoginSuccess} />;
@@ -519,8 +481,7 @@ export default function AdminPanel() {
                             onViewDetail={setSelectedItem}
                             originalDataCount={sortedAndFilteredData.length}
 
-                            // onSynchronize={handleSynchronizeClick}
-                            // isSynchronizing={isSynchronizing}
+
                             totalAmount={totalAmount}
                         />
                     } />
@@ -550,13 +511,7 @@ export default function AdminPanel() {
                 item={selectedItem}
                 onClose={() => setSelectedItem(null)}
             />
-            {/* <SyncModal
-                isOpen={showSyncModal}
-                onClose={() => setShowSyncModal(false)}
-                onConfirm={performSync}
-                isSyncing={isSynchronizing}
-                syncResult={syncResult}
-            /> */}
+
         </div>
     );
 }

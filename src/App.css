@@ -259,29 +259,6 @@ body {
     letter-spacing: -0.02em;
 }
 
-.synchronize-btn {
-    font-weight: 700;
-    width: 100px;
-    height: 42px;
-    border-radius: var(--radius-sm);
-    background: white;
-    border: 1px solid var(--border);
-    color: var(--text-muted);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.synchronize-btn:hover {
-    background: #f8fafc !important;
-    color: var(--primary) !important;
-    border-color: var(--primary) !important;
-    transform: translateY(-1px) !important;
-    box-shadow: var(--shadow-sm) !important;
-}
-
 .filter-icon-button {
     width: 42px;
     height: 42px;

@@ -60,8 +60,7 @@ const RepositoryExplorer = ({
     handlePageChange,
     onViewDetail,
     originalDataCount,
-    // onSynchronize,
-    // isSynchronizing
+
 }) => {
 
     return (
@@ -74,9 +73,6 @@ const RepositoryExplorer = ({
                             <p className="repo-stat-line">
                                 Total Stores: <strong>{originalDataCount}</strong>
                             </p>
-                            {/* <p className="repo-stat-line">
-                                Total Amount: <strong>${totalAmount?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong>
-                            </p> */}
                         </div>
                     </div>
                 </div>
@@ -87,8 +83,7 @@ const RepositoryExplorer = ({
                         handleFilterChange={handleFilterChange}
                         statuses={statuses}
                         resetFilters={resetFilters}
-                    // onSynchronize={onSynchronize}
-                    // isSynchronizing={isSynchronizing}
+
                     />
                 </div>
             </div>

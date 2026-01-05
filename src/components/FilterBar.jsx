@@ -7,8 +7,7 @@ const FilterBar = ({
     handleFilterChange,
     statuses,
     resetFilters,
-    // onSynchronize,
-    // isSynchronizing
+
 }) => {
     const navigate = useNavigate();
     const [showFilters, setShowFilters] = useState(false);
@@ -123,15 +122,7 @@ const FilterBar = ({
                     <line x1="12" y1="15" x2="12" y2="3" />
                 </svg>
             </button>
-            {/* <button
-                className='synchronize-btn'
-                title='Synchronize'
-                onClick={onSynchronize}
-                disabled={isSynchronizing}
-                style={{ cursor: isSynchronizing ? 'not-allowed' : 'pointer', opacity: isSynchronizing ? 0.7 : 1 }}
-            >
-                {isSynchronizing ? "Syncing..." : "Synchronize"}
-            </button> */}
+
         </div>
     );
 };

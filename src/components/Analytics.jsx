@@ -129,7 +129,6 @@ const CHART_THEME = {
 
 const Analytics = ({ data }) => {
     const navigate = useNavigate();
-    // Subscription Chart Filter State
     const [chartType, setChartType] = useState('bar');
     const [mainPreset, setMainPreset] = useState('all');
     const [mainStartDate, setMainStartDate] = useState('');
@@ -137,7 +136,6 @@ const Analytics = ({ data }) => {
     const [showMainPicker, setShowMainPicker] = useState(false);
     const mainPickerRef = useRef(null);
 
-    // Subscription Chart Filter State
     const [subPreset, setSubPreset] = useState('all');
     const [subStartDate, setSubStartDate] = useState('');
     const [subEndDate, setSubEndDate] = useState('');
@@ -189,7 +187,6 @@ const Analytics = ({ data }) => {
 
     const filteredMainData = useMemo(() => filterData(data, mainStartDate, mainEndDate), [data, mainStartDate, mainEndDate]);
     const filteredSubData = useMemo(() => filterData(data, subStartDate, subEndDate), [data, subStartDate, subEndDate]);
-    // Helper for empty bump data
     const getEmptyBumpData = (startStr, endStr) => {
         let start = startStr ? new Date(startStr) : null;
         let end = endStr ? new Date(endStr) : null;
@@ -207,7 +204,6 @@ const Analytics = ({ data }) => {
 
         const dummyMonths = [];
         let current = new Date(start);
-        // Safety break to prevent infinite loops if dates are weird
         let iterations = 0;
         while (current <= end && iterations < 1000) {
             let timeKey;
@@ -230,7 +226,6 @@ const Analytics = ({ data }) => {
     const { statusDistribution, bumpChartData, pieChartData } = useMemo(() => {
         const chartData = filteredMainData || [];
 
-        // Define statuses first
         const allowedStatuses = ['uninstalled', 'store closed', 'installed', 'subscription charge activated'];
         const statusCounts = {};
         const timeStatusMap = {};
@@ -246,7 +241,6 @@ const Analytics = ({ data }) => {
             if (diffDays < 60) useDaily = true;
         }
 
-        // Process Data if it exists
         if (chartData.length > 0) {
             chartData.forEach(item => {
                 const eventsInRange = item.additionalInfo || [];
@@ -303,7 +297,6 @@ const Analytics = ({ data }) => {
             }))
         }));
 
-        // Fallback if no valid bump series found (avoids crash)
         if (bumpSeries.length === 0) {
             bumpSeries = getEmptyBumpData(mainStartDate, mainEndDate);
             if (sortedStatus.length === 0) sortedStatus.push({ name: "No Data", count: 0 });
@@ -350,7 +343,6 @@ const Analytics = ({ data }) => {
                 const events = item.additionalInfo || [];
                 if (events.length === 0) return;
 
-                // Populate recent activity list & Bump Chart Data
                 events.forEach(event => {
                     const evName = event.event?.toLowerCase();
                     if (subscriptionEvents.includes(evName)) {
@@ -360,7 +352,6 @@ const Analytics = ({ data }) => {
                             event: event.event
                         });
 
-                        // Bump Chart Logic (Activity over time)
                         const dateObj = safeParseDate(event.date);
                         if (dateObj) {
                             let timeKey;
@@ -370,7 +361,6 @@ const Analytics = ({ data }) => {
                                 timeKey = `${dateObj.getFullYear()}-${String(dateObj.getMonth() + 1).padStart(2, '0')}`;
                             }
 
-                            // Capitalize for consistency with counts
                             let statusLabel = "";
                             if (evName.includes('activated')) statusLabel = 'Subscription Charge Activated';
                             else if (evName.includes('frozen') && !evName.includes('unfrozen')) statusLabel = 'Subscription Charge Frozen';
@@ -386,7 +376,6 @@ const Analytics = ({ data }) => {
                     }
                 });
 
-                // Subscription Bar/Pie Data Calculation
                 const sortedEvents = [...events].sort((a, b) => {
                     const dateA = safeParseDate(a.date);
                     const dateB = safeParseDate(b.date);
@@ -403,7 +392,6 @@ const Analytics = ({ data }) => {
             });
         }
 
-        // Sort by date descending
         recentActivations.sort((a, b) => {
             const dateA = safeParseDate(a.date);
             const dateB = safeParseDate(b.date);
@@ -432,13 +420,10 @@ const Analytics = ({ data }) => {
             }))
         }));
 
-        // Filter out series that have NO data points (all null)
         subscriptionBumpData = subscriptionBumpData.filter(series => series.data.some(d => d.y !== null));
 
-        // Fallback for empty bump data
         if (subscriptionBumpData.length === 0) {
             subscriptionBumpData = getEmptyBumpData(subStartDate, subEndDate);
-            // Also ensure bar/pie have dummy data if totally empty
             if (subscriptionBarData.every(d => d.count === 0)) {
                 subscriptionBarData = [{ name: "No Data", count: 0 }];
                 subscriptionPieData = [{ id: "No Data", label: "No Data", value: 1 }];
