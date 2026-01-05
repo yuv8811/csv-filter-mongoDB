@@ -27,10 +27,12 @@ connectDB();
 const uploadRouter = require("./upload.cjs");
 const loginRouter = require("./login.cjs");
 const metafieldRouter = require("./metafield.cjs");
+const sessionRouter = require("./session.cjs");
 
 app.use(uploadRouter);
 app.use(loginRouter);
 app.use(metafieldRouter);
+app.use(sessionRouter);
 
 
 
@@ -42,8 +44,5 @@ app.get("/", async (req, res) => {
         res.status(500).json({ error: "DB Error" });
     }
 });
-
-
-
 
 app.listen(3000, () => console.log("🚀 Server running on http://localhost:3000"));

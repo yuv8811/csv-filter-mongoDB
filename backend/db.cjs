@@ -75,11 +75,18 @@ const UploadHistorySchema = new mongoose.Schema({
 
 const UploadHistory = mongoose.model("UploadHistory", UploadHistorySchema);
 
+const SessionDataSchema = new mongoose.Schema({
+    key: String,
+    value: mongoose.Schema.Types.Mixed
+}, { collection: 'session_data', strict: false, timestamps: true });
+const SessionData = mongoose.model("SessionData", SessionDataSchema);
+
 module.exports = {
     connectDB,
     ShopInfo,
     CsvData,
     User,
     AccessToken,
-    UploadHistory
+    UploadHistory,
+    SessionData
 };

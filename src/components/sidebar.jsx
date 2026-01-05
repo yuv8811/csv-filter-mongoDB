@@ -34,6 +34,13 @@ const Sidebar = ({ onLogout }) => {
                     </svg>
                     Metafield Search
                 </NavLink> */}
+                <NavLink className={({ isActive }) => `tab-button ${isActive ? "active" : ""}`} to="/session-data">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z" />
+                        <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4z" />
+                    </svg>
+                    session data
+                </NavLink>
                 <button
                     className="tab-button logout-button"
                     onClick={onLogout}

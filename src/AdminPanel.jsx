@@ -8,6 +8,7 @@ import DetailModal from "./components/DetailModal";
 import MetafieldSearch from "./components/MetafieldSearch";
 import Analytics from "./components/Analytics";
 import Login from "./components/login";
+import SessionData from "./components/session_data";
 
 import { safeParseDate } from "./utils/helpers";
 
@@ -504,6 +505,7 @@ export default function AdminPanel() {
                     } />
                     <Route path="/analytics" element={<Analytics data={data} />} />
                     <Route path="/metafields" element={<MetafieldSearch />} />
+                    <Route path="/session-data" element={<SessionData />} />
                 </Routes>
             </main>
 
