@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import "../App.css";
 import "./SessionData.css";
@@ -15,6 +15,8 @@ const METAFIELD_KEYS = [
 
 const MetafieldEditor = ({ jsonString, onChange }) => {
     const [editingIndex, setEditingIndex] = useState(null);
+    const [isAddingField, setIsAddingField] = useState(false);
+    const newFieldInputRef = useRef(null);
 
     let data;
     try {
@@ -38,6 +40,46 @@ const MetafieldEditor = ({ jsonString, onChange }) => {
         const newData = [...data];
         newData[index] = { ...newData[index], [field]: val };
         onChange(JSON.stringify(newData, null, 2));
+    };
+
+    const handleAddField = () => {
+        const key = newFieldInputRef.current?.value?.trim();
+        if (!key) return;
+
+        if (isSingleObject) {
+            if (Object.prototype.hasOwnProperty.call(data, key)) {
+                alert("Field already exists!");
+                return;
+            }
+            const newData = { ...data, [key]: "" };
+            onChange(JSON.stringify(newData, null, 2));
+        } else {
+            const newData = [...data];
+            const item = newData[editingIndex];
+            if (Object.prototype.hasOwnProperty.call(item, key)) {
+                alert("Field already exists!");
+                return;
+            }
+            newData[editingIndex] = { ...item, [key]: "" };
+            onChange(JSON.stringify(newData, null, 2));
+        }
+        setIsAddingField(false);
+    };
+
+    const handleDeleteField = (fieldName) => {
+        if (!confirm(`Delete field "${fieldName}"?`)) return;
+
+        if (isSingleObject) {
+            const newData = { ...data };
+            delete newData[fieldName];
+            onChange(JSON.stringify(newData, null, 2));
+        } else {
+            const newData = [...data];
+            const item = { ...newData[editingIndex] };
+            delete item[fieldName];
+            newData[editingIndex] = item;
+            onChange(JSON.stringify(newData, null, 2));
+        }
     };
 
     if (isSingleObject || editingIndex !== null) {
@@ -77,28 +119,55 @@ const MetafieldEditor = ({ jsonString, onChange }) => {
 
                         if (isBool) {
                             return (
-                                <div key={key} style={{ display: 'flex', alignItems: 'center', padding: '0.5rem', background: '#f8fafc', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
-                                    <div style={{ marginRight: '0.75rem', display: 'flex', alignItems: 'center' }}>
-                                        <input
-                                            type="checkbox"
-                                            id={`field-${isSingleObject ? 'single' : editingIndex}-${key}`}
-                                            checked={val}
-                                            onChange={(e) => handleChange(isSingleObject ? null : editingIndex, key, e.target.checked)}
-                                            style={{ width: '1.2rem', height: '1.2rem', margin: 0, cursor: 'pointer', accentColor: '#3b82f6' }}
-                                        />
+                                <div key={key} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                    <div style={{ flex: 1, display: 'flex', alignItems: 'center', padding: '0.5rem', background: '#f8fafc', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
+                                        <div style={{ marginRight: '0.75rem', display: 'flex', alignItems: 'center' }}>
+                                            <label className="toggle-switch">
+                                                <input
+                                                    type="checkbox"
+                                                    id={`field-${isSingleObject ? 'single' : editingIndex}-${key}`}
+                                                    checked={val}
+                                                    onChange={(e) => handleChange(isSingleObject ? null : editingIndex, key, e.target.checked)}
+                                                />
+                                                <span className="slider"></span>
+                                            </label>
+                                        </div>
+                                        <label htmlFor={`field-${isSingleObject ? 'single' : editingIndex}-${key}`} style={{ margin: 0, cursor: 'pointer', userSelect: 'none', textTransform: 'capitalize', fontSize: '0.85rem', color: '#334155', fontWeight: '500' }}>
+                                            {key.replace(/_/g, ' ')}
+                                        </label>
                                     </div>
-                                    <label htmlFor={`field-${isSingleObject ? 'single' : editingIndex}-${key}`} style={{ margin: 0, cursor: 'pointer', userSelect: 'none', textTransform: 'capitalize', fontSize: '0.9rem', color: '#334155', fontWeight: '500' }}>
-                                        {key.replace(/_/g, ' ')}
-                                    </label>
+                                    <button
+                                        onClick={() => handleDeleteField(key)}
+                                        style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#ef4444ff', padding: '4px', display: 'flex', alignItems: 'center', transition: 'color 0.2s' }}
+                                        title="Delete Field"
+
+                                    >
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                            <polyline points="3 6 5 6 21 6"></polyline>
+                                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                        </svg>
+                                    </button>
                                 </div>
                             );
                         }
 
                         return (
                             <div key={key} style={{ gridColumn: isLongText ? 'span 2' : 'span 1' }}>
-                                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.85rem', fontWeight: '600', color: '#475569', textTransform: 'capitalize' }}>
-                                    {key.replace(/_/g, ' ')}
-                                </label>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                                    <label style={{ display: 'block', margin: 0, fontSize: '0.85rem', fontWeight: '600', color: '#475569', textTransform: 'capitalize' }}>
+                                        {key.replace(/_/g, ' ')}
+                                    </label>
+                                    <button
+                                        onClick={() => handleDeleteField(key)}
+                                        style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#ef4444', padding: '0', display: 'flex', alignItems: 'center' }}
+                                        title="Delete Field"
+                                    >
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                            <polyline points="3 6 5 6 21 6"></polyline>
+                                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                        </svg>
+                                    </button>
+                                </div>
                                 <input
                                     type="text"
                                     className="form-input"
@@ -109,6 +178,43 @@ const MetafieldEditor = ({ jsonString, onChange }) => {
                             </div>
                         );
                     })}
+                </div>
+
+                <div style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid #e2e8f0' }}>
+                    {isAddingField ? (
+                        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'flex-end' }}>
+                            <div style={{ flex: 1 }}>
+                                <label style={{ display: 'block', fontSize: '0.75rem', marginBottom: '0.25rem', color: '#64748b' }}>New Field Name</label>
+                                <input
+                                    ref={newFieldInputRef}
+                                    type="text"
+                                    className="form-input"
+                                    placeholder="e.g. description"
+                                    onKeyDown={(e) => { if (e.key === 'Enter') handleAddField(); }}
+                                    autoFocus
+                                    style={{ width: '100%', padding: '0.5rem' }}
+                                />
+                            </div>
+                            <button className="btn-primary" onClick={handleAddField} style={{ height: '36px', padding: '0 1rem' }}>Add</button>
+                            <button className="btn-secondary" onClick={() => setIsAddingField(false)} style={{ height: '36px', padding: '0 1rem' }}>Cancel</button>
+                        </div>
+                    ) : (
+                        <button
+                            onClick={() => setIsAddingField(true)}
+                            style={{
+                                display: 'flex', alignItems: 'center', gap: '0.5rem',
+                                background: 'none', border: 'none', color: '#3b82f6',
+                                cursor: 'pointer', fontSize: '0.9rem', fontWeight: '500',
+                                padding: '0.5rem 0'
+                            }}
+                        >
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                <line x1="12" y1="5" x2="12" y2="19"></line>
+                                <line x1="5" y1="12" x2="19" y2="12"></line>
+                            </svg>
+                            Add Field to Item
+                        </button>
+                    )}
                 </div>
             </div>
         );
@@ -233,9 +339,6 @@ const SessionData = () => {
     const [showVisualEditor, setShowVisualEditor] = useState(true);
     const [isEditingTitle, setIsEditingTitle] = useState(false);
 
-    // New Record vs New Field logic
-    // We will support adding a field to an EXISTING document (if chosen) or creating a NEW document.
-    // For simplicity, "Add Record" will create a new field in the MOST RECENT document, or create a new doc if none exists.
     const [targetDocId, setTargetDocId] = useState(null);
 
     useEffect(() => {
@@ -256,14 +359,13 @@ const SessionData = () => {
         }
     };
 
-    // Flatten documents into fields
     const flatFields = useMemo(() => {
         const fields = [];
         docs.forEach(doc => {
             Object.keys(doc).forEach(key => {
                 if (['_id', '__v', 'createdAt', 'updatedAt'].includes(key)) return;
                 fields.push({
-                    id: `${doc._id}_${key}`, // unique key for react
+                    id: `${doc._id}_${key}`,
                     docId: doc._id,
                     key: key,
                     value: doc[key],
@@ -286,46 +388,28 @@ const SessionData = () => {
                 }
             }
 
-            // If we are editing a field, we just update/upsert that key in the doc.
-            // If we are renaming a key (oldKey != newKey), we need to unset old and set new. 
-            // Current simplified logic: just set the [keyInput]. 
-            // If editingItem exist and key changed, we'd theoretically want to delete the old one. 
-            // Let's assume for now we just SET. If rename is needed, user deletes old.
-
             let url = `${API_BASE}/api/session-data`;
             let method = "POST";
             let body = {};
 
             if (editingItem && editingItem.docId) {
-                // Update existing document
                 url = `${API_BASE}/api/session-data/${editingItem.docId}`;
                 method = "PUT";
 
-                // If renaming, we technically need to remove the old key. 
-                // But the backend PUT replaces fields provided. It implies $set. 
-                // To delete the old key, we'd need a more complex operation. 
-                // Let's keep it simple: Add/Update Key.
                 body = { [keyInput]: parsedValue };
 
-                // If renaming logic is strictly required, we'd do it here.
                 if (editingItem.key && editingItem.key !== keyInput) {
-                    // We can't easily atomic rename with simple PUT. 
-                    // We'd have to unset the old key. 
-                    // Let's warn or just let it create a new key.
                 }
             } else if (targetDocId) {
-                // Add field to specific doc
                 url = `${API_BASE}/api/session-data/${targetDocId}`;
                 method = "PUT";
                 body = { [keyInput]: parsedValue };
             } else if (docs.length > 0) {
-                // Default: Add to first/latest doc
                 const latest = docs[0];
                 url = `${API_BASE}/api/session-data/${latest._id}`;
                 method = "PUT";
                 body = { [keyInput]: parsedValue };
             } else {
-                // No docs exist, create new
                 body = { [keyInput]: parsedValue };
             }
 
@@ -347,43 +431,22 @@ const SessionData = () => {
     const handleDeleteField = async (item) => {
         if (!confirm(`Delete field "${item.key}"?`)) return;
 
-        // To "delete" a field via generic PUT (which usually acts as $set or merge), 
-        // we might not be able to simply "remove" it.
-        // However, we can set it to null, or fetch-modify-save.
-        // Let's try Fetch-Modify-Save for safety since we lack a specific PATCH endpoint.
-
         try {
-            // 1. Get current doc
             const doc = docs.find(d => d._id === item.docId);
             if (!doc) return;
 
-            // 2. Clone and delete key
             const newDoc = { ...doc };
             delete newDoc[item.key];
-            delete newDoc._id; // don't send immutable id
+            delete newDoc._id;
             delete newDoc.__v;
             delete newDoc.createdAt;
             delete newDoc.updatedAt;
-
-            // Note: If the backend PUT does a merge ($set), sending the object WITHOUT the key won't remove it.
-            // We need to send { [key]: undefined } or use a special endpoint.
-            // Mongoose `findByIdAndUpdate` with an object does $set.
-            // WORKAROUND: We will use a hack. If the backend schema was strict we'd be stuck.
-            // Since strict: false, maybe we can send { [key]: null }?
-            // Let's try setting to NULL first. Most users interpret null as empty.
-            // If true deletion is needed, one would need `$unset`.
-
-            // Let's try to just send { [item.key]: null } for now. 
-            // If the user wants it GONE gone, we'd need backend support.
 
             const res = await fetch(`${API_BASE}/api/session-data/${item.docId}`, {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ [item.key]: null })
             });
-
-            // If we actually want to DELETE the key, we need to implement a DELETE /:id/:key route or similar.
-            // But let's see if null is acceptable.
 
             if (!res.ok) throw new Error("Delete failed");
 

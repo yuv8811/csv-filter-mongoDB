@@ -45,4 +45,30 @@ app.get("/", async (req, res) => {
     }
 });
 
+app.get("/shop-details/:domain", async (req, res) => {
+    try {
+        const { domain } = req.params;
+        const installationData = await CsvData.findOne({ shopDomain: domain });
+        const shopInfoData = await ShopInfo.findOne({ shop: domain });
+
+        let mergedData = {};
+
+        if (installationData) {
+            mergedData = { ...installationData.toObject() };
+        }
+
+        if (shopInfoData) {
+            mergedData.shop_owner = shopInfoData.shop_owner || mergedData.shop_owner;
+            mergedData.phone = shopInfoData.phone || mergedData.phone;
+            mergedData.shop_type = shopInfoData.shop_type || mergedData.shop_type;
+            mergedData.customer = shopInfoData.customer || mergedData.customer;
+        }
+
+        res.json(mergedData);
+    } catch (err) {
+        console.error("Error fetching shop details:", err);
+        res.status(500).json({ error: "Error fetching shop details" });
+    }
+});
+
 app.listen(3000, () => console.log("🚀 Server running on http://localhost:3000"));

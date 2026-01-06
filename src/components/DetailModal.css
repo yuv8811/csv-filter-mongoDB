@@ -446,3 +446,10 @@
     background-color: #cbd5e1;
     border-radius: 3px;
 }
+
+.dm-total-spent {
+    font-size: 15px;
+    font-weight: 700;
+    color: #059669;
+    margin-top: 8px;
+}

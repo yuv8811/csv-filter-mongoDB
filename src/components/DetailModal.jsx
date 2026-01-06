@@ -1,11 +1,34 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './DetailModal.css';
 
 const DetailModal = ({ item, onClose }) => {
+    const [displayItem, setDisplayItem] = useState(item);
     const [activeTab, setActiveTab] = useState('all');
     const [searchTerm, setSearchTerm] = useState('');
 
-    if (!item) return null;
+    useEffect(() => {
+        setDisplayItem(item);
+        if (item && item.shopDomain) {
+            fetch(`http://localhost:3000/shop-details/${item.shopDomain}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data && !data.error) {
+                        setDisplayItem(prev => ({
+                            ...prev,
+                            shop_owner: data.shop_owner,
+                            phone: data.phone,
+                            shop_type: data.shop_type,
+                            customer: data.customer,
+                            shopEmail: data.shopEmail || prev.shopEmail,
+                            shopCountry: data.shopCountry || prev.shopCountry
+                        }));
+                    }
+                })
+                .catch(err => console.error("Failed to fetch shop details", err));
+        }
+    }, [item]);
+
+    if (!displayItem) return null;
 
     // Helper to format date nicely
     const formatDate = (dateString, includeTime = true) => {
@@ -23,7 +46,7 @@ const DetailModal = ({ item, onClose }) => {
     };
 
     // Filter Logic
-    const history = item.additionalInfo || [];
+    const history = displayItem.additionalInfo || [];
     const filteredHistory = history.filter(event => {
         const matchesSearch =
             (event.event || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -36,7 +59,7 @@ const DetailModal = ({ item, onClose }) => {
         }
 
         return matchesSearch;
-    });
+    }).sort((a, b) => new Date(b.date) - new Date(a.date));
 
     // Icons
     const Icons = {
@@ -65,22 +88,23 @@ const DetailModal = ({ item, onClose }) => {
                     {/* LEFT SIDEBAR - PROFILE */}
                     <div className="dm-sidebar">
                         <div className="dm-profile-header">
-                            <h2 className="dm-shop-name">{item.shopName || "Unknown Shop"}</h2>
-                            <a href={`https://${item.shopDomain}`} target="_blank" rel="noopener noreferrer" className="dm-shop-domain">
-                                {item.shopDomain} {Icons.link}
+                            <h2 className="dm-shop-name">{displayItem.shopName || "Unknown Shop"}</h2>
+                            <a href={`https://${displayItem.shopDomain}`} target="_blank" rel="noopener noreferrer" className="dm-shop-domain">
+                                {displayItem.shopDomain} {Icons.link}
                             </a>
+                            <h3 className="dm-total-spent">Total Spent: ${(displayItem.totalSpent || 0).toFixed(2)}</h3>
                         </div>
 
                         <div className="dm-info-group">
                             <h3 className="dm-group-title">Contact & Details</h3>
 
                             {[
-                                { label: 'Owner', value: item.shop_owner, icon: Icons.user, key: 'owner' },
-                                { label: 'Email', value: item.shopEmail, icon: Icons.email, key: 'email' },
-                                { label: 'Phone', value: item.phone, icon: Icons.phone, key: 'phone' },
-                                { label: 'Country', value: item.shopCountry, icon: Icons.map, key: 'country' },
-                                { label: 'Store type', value: item.shop_type, icon: Icons.store, key: 'type' },
-                                { label: 'Customers', value: item.customer, icon: Icons.user, key: 'id' },
+                                { label: 'Owner', value: displayItem.shop_owner, icon: Icons.user, key: 'owner' },
+                                { label: 'Email', value: displayItem.shopEmail, icon: Icons.email, key: 'email' },
+                                { label: 'Phone', value: displayItem.phone, icon: Icons.phone, key: 'phone' },
+                                { label: 'Country', value: displayItem.shopCountry, icon: Icons.map, key: 'country' },
+                                { label: 'Store type', value: displayItem.shop_type, icon: Icons.store, key: 'type' },
+                                { label: 'Customers', value: displayItem.customer, icon: Icons.user, key: 'id' },
                             ].map((field) => (
                                 <div
                                     className="dm-info-row"
