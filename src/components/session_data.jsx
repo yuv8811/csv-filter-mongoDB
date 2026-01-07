@@ -13,7 +13,53 @@ const METAFIELD_KEYS = [
     'registerMetafield'
 ];
 
-const MetafieldEditor = ({ jsonString, onChange }) => {
+const ConfirmModal = ({ isOpen, title, message, onConfirm, onCancel, isAlert = false }) => {
+    if (!isOpen) return null;
+
+    return (
+        <div className="confirm-modal-overlay" onClick={onCancel}>
+            <div className="confirm-modal-content" onClick={e => e.stopPropagation()}>
+                <div className="confirm-modal-body">
+                    <div className={`confirm-icon-wrapper ${isAlert ? 'alert' : ''}`}>
+                        {isAlert ? (
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <line x1="12" y1="16" x2="12" y2="12"></line>
+                                <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                            </svg>
+                        ) : (
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                                <line x1="12" y1="9" x2="12" y2="13"></line>
+                                <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                            </svg>
+                        )}
+                    </div>
+                    <h3 className="confirm-title">{title}</h3>
+                    <p className="confirm-message">{message}</p>
+                </div>
+                <div className="confirm-modal-footer">
+                    {!isAlert && (
+                        <button className="btn-confirm-secondary" onClick={onCancel}>
+                            Cancel
+                        </button>
+                    )}
+                    <button
+                        className={isAlert ? "btn-confirm-primary" : "btn-confirm-danger"}
+                        onClick={() => {
+                            if (onConfirm) onConfirm();
+                            onCancel(); // Close modal after confirm
+                        }}
+                    >
+                        {isAlert ? "OK" : "Delete"}
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+const MetafieldEditor = ({ jsonString, onChange, onAlert, onConfirm }) => {
     const [editingIndex, setEditingIndex] = useState(null);
     const [isAddingField, setIsAddingField] = useState(false);
     const newFieldInputRef = useRef(null);
@@ -48,7 +94,7 @@ const MetafieldEditor = ({ jsonString, onChange }) => {
 
         if (isSingleObject) {
             if (Object.prototype.hasOwnProperty.call(data, key)) {
-                alert("Field already exists!");
+                onAlert("Duplicate Field", "Field already exists!");
                 return;
             }
             const newData = { ...data, [key]: "" };
@@ -57,7 +103,7 @@ const MetafieldEditor = ({ jsonString, onChange }) => {
             const newData = [...data];
             const item = newData[editingIndex];
             if (Object.prototype.hasOwnProperty.call(item, key)) {
-                alert("Field already exists!");
+                onAlert("Duplicate Field", "Field already exists!");
                 return;
             }
             newData[editingIndex] = { ...item, [key]: "" };
@@ -67,19 +113,23 @@ const MetafieldEditor = ({ jsonString, onChange }) => {
     };
 
     const handleDeleteField = (fieldName) => {
-        if (!confirm(`Delete field "${fieldName}"?`)) return;
-
-        if (isSingleObject) {
-            const newData = { ...data };
-            delete newData[fieldName];
-            onChange(JSON.stringify(newData, null, 2));
-        } else {
-            const newData = [...data];
-            const item = { ...newData[editingIndex] };
-            delete item[fieldName];
-            newData[editingIndex] = item;
-            onChange(JSON.stringify(newData, null, 2));
-        }
+        onConfirm(
+            "Delete Field",
+            `Are you sure you want to delete the field "${fieldName}"?`,
+            () => {
+                if (isSingleObject) {
+                    const newData = { ...data };
+                    delete newData[fieldName];
+                    onChange(JSON.stringify(newData, null, 2));
+                } else {
+                    const newData = [...data];
+                    const item = { ...newData[editingIndex] };
+                    delete item[fieldName];
+                    newData[editingIndex] = item;
+                    onChange(JSON.stringify(newData, null, 2));
+                }
+            }
+        );
     };
 
     if (isSingleObject || editingIndex !== null) {
@@ -341,6 +391,39 @@ const SessionData = () => {
 
     const [targetDocId, setTargetDocId] = useState(null);
 
+    // Confirm Dialog State
+    const [confirmDialog, setConfirmDialog] = useState({
+        isOpen: false,
+        title: "",
+        message: "",
+        onConfirm: null,
+        isAlert: false
+    });
+
+    const showConfirm = (title, message, onConfirmAction) => {
+        setConfirmDialog({
+            isOpen: true,
+            title,
+            message,
+            onConfirm: onConfirmAction,
+            isAlert: false
+        });
+    };
+
+    const showAlert = (title, message) => {
+        setConfirmDialog({
+            isOpen: true,
+            title,
+            message,
+            onConfirm: null,
+            isAlert: true
+        });
+    };
+
+    const closeConfirmDialog = () => {
+        setConfirmDialog(prev => ({ ...prev, isOpen: false }));
+    };
+
     useEffect(() => {
         fetchData();
     }, []);
@@ -383,7 +466,7 @@ const SessionData = () => {
                 try {
                     parsedValue = JSON.parse(valueInput);
                 } catch (e) {
-                    alert("Invalid JSON for Value field");
+                    showAlert("Invalid JSON", "Please enter valid JSON for the Value field.");
                     return;
                 }
             }
@@ -423,39 +506,44 @@ const SessionData = () => {
 
             closeModal();
             fetchData();
+            fetchData();
         } catch (err) {
-            alert(err.message);
+            showAlert("Error", err.message);
         }
     };
 
     const handleDeleteField = async (item) => {
-        if (!confirm(`Delete field "${item.key}"?`)) return;
+        showConfirm(
+            "Delete Field",
+            `Are you sure you want to delete the field "${item.key}"? This action cannot be undone.`,
+            async () => {
+                try {
+                    const doc = docs.find(d => d._id === item.docId);
+                    if (!doc) return;
 
-        try {
-            const doc = docs.find(d => d._id === item.docId);
-            if (!doc) return;
+                    const newDoc = { ...doc };
+                    delete newDoc[item.key];
+                    delete newDoc._id;
+                    delete newDoc.__v;
+                    delete newDoc.createdAt;
+                    delete newDoc.updatedAt;
 
-            const newDoc = { ...doc };
-            delete newDoc[item.key];
-            delete newDoc._id;
-            delete newDoc.__v;
-            delete newDoc.createdAt;
-            delete newDoc.updatedAt;
+                    const res = await fetch(`${API_BASE}/api/session-data/${item.docId}`, {
+                        method: "PUT",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ [item.key]: null })
+                    });
 
-            const res = await fetch(`${API_BASE}/api/session-data/${item.docId}`, {
-                method: "PUT",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ [item.key]: null })
-            });
+                    if (!res.ok) throw new Error("Delete failed");
 
-            if (!res.ok) throw new Error("Delete failed");
+                    fetchData();
 
-            fetchData();
-
-        } catch (err) {
-            console.error(err);
-            alert("Could not delete field");
-        }
+                } catch (err) {
+                    console.error(err);
+                    showAlert("Error", "Could not delete field");
+                }
+            }
+        );
     };
 
     const openModal = (item = null) => {
@@ -622,6 +710,8 @@ const SessionData = () => {
                                 <MetafieldEditor
                                     jsonString={valueInput}
                                     onChange={setValueInput}
+                                    onAlert={showAlert}
+                                    onConfirm={showConfirm}
                                 />
                             ) : (
                                 <>
@@ -670,8 +760,19 @@ const SessionData = () => {
                     </div>
                 </div>
             )}
+
+            {/* CONFIRM / ALERT MODAL */}
+            <ConfirmModal
+                isOpen={confirmDialog.isOpen}
+                title={confirmDialog.title}
+                message={confirmDialog.message}
+                onConfirm={confirmDialog.onConfirm}
+                onCancel={closeConfirmDialog}
+                isAlert={confirmDialog.isAlert}
+            />
         </div>
     );
 };
+
 
 export default SessionData;

@@ -81,6 +81,9 @@ const SessionDataSchema = new mongoose.Schema({
 }, { collection: 'session_data', strict: false, timestamps: true });
 const SessionData = mongoose.model("SessionData", SessionDataSchema);
 
+const MerchantDataSchema = new mongoose.Schema({}, { collection: 'merchantData', strict: false });
+const MerchantData = mongoose.model("MerchantData", MerchantDataSchema);
+
 module.exports = {
     connectDB,
     ShopInfo,
@@ -88,5 +91,6 @@ module.exports = {
     User,
     AccessToken,
     UploadHistory,
-    SessionData
+    SessionData,
+    MerchantData
 };

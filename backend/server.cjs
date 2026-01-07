@@ -28,11 +28,13 @@ const uploadRouter = require("./upload.cjs");
 const loginRouter = require("./login.cjs");
 const metafieldRouter = require("./metafield.cjs");
 const sessionRouter = require("./session.cjs");
+const merchantDataRouter = require("./mercahntData.cjs");
 
 app.use(uploadRouter);
 app.use(loginRouter);
 app.use(metafieldRouter);
 app.use(sessionRouter);
+app.use(merchantDataRouter);
 
 
 
