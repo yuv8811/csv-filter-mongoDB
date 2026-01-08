@@ -248,7 +248,7 @@ function Upload({ onSuccess }) {
             <div className={`side-panel ${showHistory ? "open" : ""}`}>
                 <div className="side-panel-header">
                     <h2>Upload History</h2>
-                    <button onClick={() => setShowHistory(false)}>✕</button>
+                    <button className="back-btn-square" onClick={() => setShowHistory(false)}>✕</button>
                 </div>
 
                 <div className="side-panel-content">

@@ -1,9 +1,16 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
-const MerchantData = () => {
-    const [rawData, setRawData] = useState([]);
+const normalizeDomain = (domain = "") => {
+    if (!domain) return "";
+    return domain.endsWith(".myshopify.com")
+        ? domain
+        : `${domain}.myshopify.com`;
+};
+
+const StoreVisit = () => {
+    const [data, setData] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
@@ -12,7 +19,10 @@ const MerchantData = () => {
 
         const fetchData = async () => {
             try {
-                const res = await fetch(`${API_URL}/merchant-data`, {
+                setLoading(true);
+                setError(null);
+
+                const res = await fetch(`${API_URL}/store-visits`, {
                     signal: controller.signal,
                 });
 
@@ -21,11 +31,11 @@ const MerchantData = () => {
                 }
 
                 const json = await res.json();
-                setRawData(Array.isArray(json) ? json : []);
+                setData(Array.isArray(json) ? json : []);
             } catch (err) {
                 if (err.name !== "AbortError") {
-                    console.error("Merchant fetch failed:", err);
-                    setError(err.message);
+                    console.error("Store visit fetch failed:", err);
+                    setError(err.message || "Something went wrong");
                 }
             } finally {
                 setLoading(false);
@@ -34,38 +44,13 @@ const MerchantData = () => {
 
         fetchData();
         return () => controller.abort();
-    }, []);
-    const merchants = useMemo(() => {
-        return rawData.map((item) => {
-            let customerPortalCount = null;
-
-            if (Array.isArray(item.analytics)) {
-                const portalAnalytics = item.analytics.find(
-                    (a) => a?.events?.customer_portal
-                );
-
-                customerPortalCount =
-                    portalAnalytics?.events?.customer_portal?.count ?? null;
-            } else {
-                console.warn(
-                    "Invalid analytics structure for:",
-                    item.storeName
-                );
-            }
-
-            return {
-                id: item._id,
-                storeName: item.storeName || "N/A",
-                customerPortalCount,
-            };
-        });
-    }, [rawData]);
+    }, [API_URL]);
 
     if (loading) {
         return (
             <div className="loading-container">
                 <div className="loader" />
-                <p>Loading Merchant Data...</p>
+                <p>Loading Analytics...</p>
             </div>
         );
     }
@@ -76,10 +61,10 @@ const MerchantData = () => {
 
     return (
         <div className="repository-container">
-            <div className="data-header">
-                <h1>Merchant Data Analytics</h1>
+            <div style={{ marginBottom: "1rem" }}>
+                <h1>Analytics</h1>
                 <p>
-                    Total Records: <strong>{merchants.length}</strong>
+                    Total Stores: <strong>{data.length}</strong>
                 </p>
             </div>
 
@@ -87,28 +72,26 @@ const MerchantData = () => {
                 <table className="custom-table">
                     <thead>
                         <tr>
-                            <th>Store Name</th>
-                            <th>Customer Views</th>
+                            <th>Shop Domain</th>
+                            <th>Customer Visits</th>
                         </tr>
                     </thead>
+
                     <tbody>
-                        {merchants.length === 0 ? (
+                        {data.length === 0 ? (
                             <tr>
                                 <td colSpan="2" className="empty-state-cell">
                                     No records found
                                 </td>
                             </tr>
                         ) : (
-                            merchants.map((m) => (
-                                <tr key={m.id}>
+                            data.map((item) => (
+                                <tr key={item.shopDomain}>
                                     <td className="font-semibold">
-                                        {m.storeName}
+                                        {normalizeDomain(item.shopDomain)}
                                     </td>
-                                    <td
-                                        className="font-mono-muted"
-                                        style={{ fontWeight: "bold" }}
-                                    >
-                                        {m.customerPortalCount ?? "—"}
+                                    <td className="font-mono-muted font-bold">
+                                        {item.totalCount ?? 0}
                                     </td>
                                 </tr>
                             ))
@@ -120,4 +103,4 @@ const MerchantData = () => {
     );
 };
 
-export default MerchantData;
+export default StoreVisit;

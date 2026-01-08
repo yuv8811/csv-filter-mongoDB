@@ -9,7 +9,7 @@ import MetafieldSearch from "./components/MetafieldSearch";
 import Analytics from "./components/Analytics";
 import Login from "./components/login";
 import SessionData from "./components/session_data";
-import MerchantData from "./components/merchant_data";
+import StoreVisit from "./components/storeVisit";
 
 import { safeParseDate } from "./utils/helpers";
 
@@ -507,7 +507,7 @@ export default function AdminPanel() {
                     <Route path="/analytics" element={<Analytics data={data} />} />
                     <Route path="/metafields" element={<MetafieldSearch />} />
                     <Route path="/session-data" element={<SessionData />} />
-                    <Route path="/merchant-data" element={<MerchantData />} />
+                    <Route path="/store-visits" element={<StoreVisit />} />
                 </Routes>
             </main>
 
