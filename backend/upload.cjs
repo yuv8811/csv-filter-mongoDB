@@ -177,7 +177,7 @@ router.post("/upload", upload.single("file"), async (req, res) => {
 
 router.get("/api/upload-history", async (_, res) => {
     try {
-        const history = await UploadHistory.find().sort({ createdAt: -1 });
+        const history = await UploadHistory.find().sort({ date: -1 });
         res.json(history);
     } catch {
         res.status(500).json({ error: "Failed to fetch history" });
