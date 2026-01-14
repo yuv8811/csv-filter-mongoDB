@@ -13,11 +13,14 @@ const MetafieldSearch = () => {
     const [expandedRows, setExpandedRows] = useState(new Set());
     const searchRef = useRef(null);
 
+    // Close search box if clicking outside, but NOT if it clears an error (though error is now modal)
     useEffect(() => {
         function handleClickOutside(event) {
             if (searchRef.current && !searchRef.current.contains(event.target)) {
+                // Only close if we haven't found data yet OR user wants to cancel
+                // But typically if results are shown, the input becomes a reset button or similar.
+                // In previous design, it closed.
                 setIsSearchOpen(false);
-                setError(null);
                 setShopDomain('');
             }
         }
@@ -33,6 +36,7 @@ const MetafieldSearch = () => {
         setError(null);
         setMetafields([]);
         setShopInfo(null);
+        setExpandedRows(new Set());
 
         try {
             const data = await metafieldService.getMetafields(shopDomain);
@@ -90,8 +94,7 @@ const MetafieldSearch = () => {
                 <pre className={`json-content ${isExpanded ? 'expanded' : ''}`}>
                     {displayValue}
                 </pre>
-                {!isExpanded && isLong && <div className="json-fade-overlay" />}
-
+                
                 <div className="json-actions">
                     {isLong && (
                         <button onClick={() => toggleRow(mf.id)} className="json-action-btn">
@@ -112,6 +115,7 @@ const MetafieldSearch = () => {
             <div className="metafield-hero">
                 <div className="meta-hero-text">
                     <h1>Metafield Explorer</h1>
+                    <p>Inspect and validate customer dashboard metafields directly from the Shopify Admin API.</p>
                 </div>
 
                 <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
@@ -163,18 +167,32 @@ const MetafieldSearch = () => {
                         </div>
                     )}
                 </div>
-
-                {error && (
-                    <div className="error-alert" style={{ maxWidth: '600px', margin: '2rem 0 0', position: 'absolute', top: '100%', right: 0, zIndex: 10 }}>
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" /></svg>
-                        {error}
-                    </div>
-                )}
             </div>
+
+            {/* ERROR MODAL (CENTERED) */}
+            {error && (
+                <div className="error-overlay" onClick={() => setError(null)}>
+                    <div className="error-modal" onClick={e => e.stopPropagation()}>
+                        <div className="error-modal-icon">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <line x1="18" y1="6" x2="6" y2="18"></line>
+                                <line x1="6" y1="6" x2="18" y2="18"></line>
+                            </svg>
+                        </div>
+                        <h3 className="error-modal-title">Something went wrong</h3>
+                        <p className="error-modal-message">
+                            {error}
+                        </p>
+                        <button className="error-modal-btn" onClick={() => setError(null)}>
+                            Close
+                        </button>
+                    </div>
+                </div>
+            )}
 
             {/* INFO GRID */}
             {shopInfo && (
-                <div className="shop-info-grid">
+                <div className="shop-info-grid fade-in-scale">
                     <div className="shop-info-card">
                         <span className="shop-info-label">Shop Name</span>
                         <span className="shop-info-value">{shopInfo.name}</span>

@@ -6,8 +6,8 @@ const loginService = {
      * @param {string} identifier 
      * @returns {Promise<any>}
      */
-    login: (identifier) => {
-        return api.post("/login", { identifier });
+    login: (identifier, password) => {
+        return api.post("/login", { identifier, password });
     }
 };
 

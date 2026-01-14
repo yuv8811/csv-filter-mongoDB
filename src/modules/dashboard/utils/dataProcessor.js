@@ -1,19 +1,29 @@
 import { safeParseDate } from "../../../shared/utils/helpers";
 
 export const getRelevantEvent = (item) => {
+    // Ensure event is treated as string to prevent UI crashes on .split/.toLowerCase
     const events = item.additionalInfo?.length
-        ? item.additionalInfo
-        : [{ event: item.event, date: item.date }];
+        ? [...item.additionalInfo] 
+        : (item.event ? [{ event: String(item.event), date: item.date }] : []);
 
-    const allowed = ['uninstalled', 'installed', 'store closed', 'store reopen'];
+    if (events.length === 0) return { event: "Unknown", date: null };
 
-    for (let i = events.length - 1; i >= 0; i--) {
-        const evName = events[i].event?.toLowerCase().trim();
-        if (allowed.includes(evName)) {
-            return events[i];
-        }
-    }
-    return events[events.length - 1];
+    // Sort chronologically (Oldest -> Newest)
+    events.sort((a, b) => {
+        const dateA = safeParseDate(a.date);
+        const dateB = safeParseDate(b.date);
+        return dateA - dateB;
+    });
+
+    const lastEvent = events[events.length - 1];
+    // Return raw event name strictly as string
+    const evName = lastEvent.event ? String(lastEvent.event) : "Unknown"; 
+
+    return {
+        event: evName,
+        date: lastEvent.date,
+        originalEvent: lastEvent
+    };
 };
 
 export const countBillableMonths = (start, end) => {
@@ -116,9 +126,35 @@ export const processShopData = (data, filters) => {
     return data.filter(item => {
         const lastEvent = getRelevantEvent(item);
         const matchesDomain = !filters.shopDomain || item.shopDomain?.toLowerCase().includes(filters.shopDomain.toLowerCase());
-        const matchesStatus = Array.isArray(filters.eventStatus)
-            ? (filters.eventStatus.length === 0 || filters.eventStatus.includes(lastEvent.event))
-            : (!filters.eventStatus || lastEvent.event?.toLowerCase() === filters.eventStatus.toLowerCase());
+        const matchesStatus = (() => {
+             const filterValues = Array.isArray(filters.eventStatus) 
+                ? filters.eventStatus 
+                : [filters.eventStatus];
+             
+             // Remove empty values (e.g. initial empty string or "All Statuses")
+             const activeFilters = filterValues.filter(v => v);
+
+             if (activeFilters.length === 0) return true;
+
+             const eventName = (lastEvent.event || "").toLowerCase();
+
+             return activeFilters.some(filterVal => {
+                 // Handle Grouped Filters (Distinct Keys to avoid collision with raw events)
+                 if (filterVal === 'Active') {
+                     // Matches 'Installed' Group logic
+                     return eventName === 'installed' || 
+                            eventName.includes('store') || 
+                            (eventName.includes('subscription') && !eventName.includes('canceled'));
+                 }
+                 if (filterVal === 'Inactive') {
+                     // Matches 'Uninstalled' Group logic
+                     return eventName === 'uninstalled' || eventName.includes('canceled');
+                 }
+                 
+                 // Specific Event Matches (e.g. from Dropdown)
+                 return eventName === filterVal.toLowerCase();
+             });
+        })();
 
         return matchesDomain && matchesStatus;
     }).map(item => {

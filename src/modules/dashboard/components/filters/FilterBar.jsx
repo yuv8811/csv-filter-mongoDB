@@ -1,19 +1,29 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Filters from './Filters';
+import accessConfig from '../../../../config/access.json';
 
 const FilterBar = ({
     filters,
     handleFilterChange,
     statuses,
     resetFilters,
-
+    userRole
 }) => {
     const navigate = useNavigate();
     const [showFilters, setShowFilters] = useState(false);
     const [showSearch, setShowSearch] = useState(false);
     const filterRef = useRef(null);
     const searchRef = useRef(null);
+
+    // Helper to check action permission
+    const canPerform = (action) => {
+        const roleConfig = accessConfig.roles.find(r => r.role === (userRole || 'merchant'));
+        if (!roleConfig) return false;
+        // Developers can do everything, or fallback to actions list
+        if (roleConfig.role === 'developer') return true; 
+        return roleConfig.actions && roleConfig.actions.includes(action);
+    };
 
     useEffect(() => {
         const handleClickOutside = (event) => {
@@ -89,39 +99,47 @@ const FilterBar = ({
                     />
                 )}
             </div>
+            
+            {canPerform('analytics') && (
+                <button
+                    className="filter-icon-button"
+                    onClick={() => navigate('/analytics')}
+                    title="Analytics">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                        <line x1="18" y1="20" x2="18" y2="10"></line>
+                        <line x1="12" y1="20" x2="12" y2="4"></line>
+                        <line x1="6" y1="20" x2="6" y2="14"></line>
+                    </svg>
+                </button>
+            )}
 
-            <button
-                className="filter-icon-button"
-                onClick={() => navigate('/analytics')}
-                title="Analytics">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                    <line x1="18" y1="20" x2="18" y2="10"></line>
-                    <line x1="12" y1="20" x2="12" y2="4"></line>
-                    <line x1="6" y1="20" x2="6" y2="14"></line>
-                </svg>
-            </button>
-            <button
-                className="filter-icon-button"
-                onClick={() => navigate('/import')}
-                title="Import"
-            >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                    <polyline points="17 8 12 3 7 8" />
-                    <line x1="12" y1="3" x2="12" y2="15" />
-                </svg>
-            </button>
-            <button
-                className="filter-icon-button "
-                onClick={() => navigate('/export')}
-                title="Export"
-            >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                    <polyline points="7 10 12 15 17 10" />
-                    <line x1="12" y1="15" x2="12" y2="3" />
-                </svg>
-            </button>
+            {canPerform('import') && (
+                <button
+                    className="filter-icon-button"
+                    onClick={() => navigate('/import')}
+                    title="Import"
+                >
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                        <polyline points="7 10 12 15 17 10" />
+                        <line x1="12" y1="15" x2="12" y2="3" />
+                    </svg>
+                </button>
+            )}
+            
+            {canPerform('export') && (
+                <button
+                    className="filter-icon-button "
+                    onClick={() => navigate('/export')}
+                    title="Export"
+                >
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                        <polyline points="17 8 12 3 7 8" />
+                        <line x1="12" y1="3" x2="12" y2="15" />
+                    </svg>
+                </button>
+            )}
 
         </div>
     );

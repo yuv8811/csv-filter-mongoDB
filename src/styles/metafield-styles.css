@@ -1,4 +1,4 @@
-/* Metafield Search Specific Styles */
+/* Metafield Search Specific Styles (Restored Previous Design) */
 .metafield-hero {
     display: flex;
     justify-content: space-between;
@@ -9,6 +9,7 @@
     animation: fadeInUp 0.5s ease-out;
     border-bottom: 1px solid rgba(0, 0, 0, 0.05);
     gap: 2rem;
+    position: relative; /* Ensure context for absolute elements if needed, though we use fixed for error now */
 }
 
 .meta-hero-text h1 {
@@ -119,7 +120,6 @@
         opacity: 0;
         transform: scale(0.98);
     }
-
     to {
         opacity: 1;
         transform: scale(1);
@@ -218,7 +218,6 @@
 }
 
 /* Empty State */
-/* Empty State */
 .empty-state-container {
     display: flex;
     flex-direction: column;
@@ -244,3 +243,104 @@
     color: #475569;
     margin: 0;
 }
+
+/* NEW: Centered Error Modal */
+.error-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    animation: fadeIn 0.2s ease-out;
+}
+
+.error-modal {
+    background: white;
+    border-radius: 16px;
+    padding: 2rem;
+    width: 90%;
+    max-width: 480px;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    text-align: center;
+    border: 1px solid #e2e8f0;
+    animation: scaleUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.error-modal-icon {
+    color: #ef4444;
+    background: #fef2f2;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1rem;
+}
+
+.error-modal-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #0f172a;
+    margin-bottom: 0.5rem;
+}
+
+.error-modal-message {
+    color: #64748b;
+    line-height: 1.5;
+    margin-bottom: 1.5rem;
+    font-size: 0.95rem;
+    word-break: break-word;
+}
+
+.error-modal-btn {
+    background: #0f172a;
+    color: white;
+    border: none;
+    padding: 0.75rem 2rem;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.error-modal-btn:hover {
+    background: #334155;
+}
+
+/* Re-add table styles that might be missing from this previous block */
+.custom-table-container {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    border: 1px solid #e2e8f0;
+    overflow: hidden;
+}
+
+.custom-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.custom-table th {
+    background: #f8fafc;
+    padding: 1rem;
+    text-align: left;
+    font-weight: 600;
+    color: #64748b;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.custom-table td {
+    padding: 1rem;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes scaleUp { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }

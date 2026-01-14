@@ -811,6 +811,7 @@ body {
     background: #f1f5f9;
     color: #64748b;
     border: 1px solid transparent;
+    white-space: break-spaces;
 }
 
 .event-badge.status-installed,
@@ -829,13 +830,43 @@ body {
 }
 
 /* Yellow/Amber: Store Closed */
+.event-badge.status-store-closed,
 .event-badge.closed {
     background: #fef3c7;
     color: #92400e;
     border-color: #fedf78;
 }
 
+.event-badge.status-subscription-charge-activated,
+.event-badge.subscription-charge-activated {
+    background: #dcfce7;
+    color: #166534;
+    border-color: #bbf7d0;
+}
 
+.event-badge.status-subscription-charge-frozen,
+.event-badge.subscription-charge-frozen {
+    background: #f3f7ad;
+    color: #6b6d39;
+    border-color: #daff8a;
+}
+
+.event-badge.status-subscription-charge-unfrozen,
+.event-badge.subscription-charge-unfrozen {
+    background: #fbffad;
+    color: #6b6d39;
+    border-color: #daff8a;
+}
+
+.event-badge.event-badge.status-subscription-charge-unfrozen,
+.event-badge.subscription-charge-unfrozen {
+    background: #fbffb6;
+    color: #717500;
+    border-color: #daff8a;
+}
+
+/* Green: Re-Opened */
+.event-badge.status-store-reopen,
 .event-badge.re-opened {
     background: #fef9c3;
     color: #854d0e;

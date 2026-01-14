@@ -1,5 +1,6 @@
 
 import FilterBar from './filters/FilterBar';
+// Removed safeParseDate import
 
 const SortIcon = ({ direction }) => {
     if (direction === 'asc') {
@@ -49,6 +50,12 @@ const SortHeader = ({ label, sortKey, currentSort, onSort }) => {
     );
 };
 
+const getBadgeCategory = (currentEvent) => {
+    const evName = String(currentEvent || "Unknown").toLowerCase();
+    // Return kebab-case slug so CSS can target specific events (e.g. status-store-closed)
+    return evName.replace(/\s+/g, '-');
+};
+
 const RepositoryExplorer = ({
     data,
     filters,
@@ -60,7 +67,7 @@ const RepositoryExplorer = ({
     handlePageChange,
     onViewDetail,
     originalDataCount,
-
+    userRole
 }) => {
 
     return (
@@ -83,7 +90,7 @@ const RepositoryExplorer = ({
                         handleFilterChange={handleFilterChange}
                         statuses={statuses}
                         resetFilters={resetFilters}
-
+                        userRole={userRole}
                     />
                 </div>
             </div>
@@ -118,10 +125,13 @@ const RepositoryExplorer = ({
                     </thead>
                     <tbody>
                         {data.length > 0 ? data.map(item => {
+                            const badgeCategory = getBadgeCategory(item.currentEvent);
+                            const displayLabel = item.currentEvent ? item.currentEvent.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ') : "Unknown";
+                            
                             return (
                                 <tr key={item._id}>
                                     <td className="font-semibold custom-table-td">{item.shopDomain}</td>
-                                    <td className='badge-container'><span className={`event-badge status-${item.currentEvent?.toLowerCase()}`}>{item.currentEvent}</span></td>
+                                    <td className='badge-container'><span className={`event-badge status-${badgeCategory.toLowerCase()}`}>{displayLabel}</span></td>
                                     <td className="font-semibold text-primary">
                                         {item.planPrice > 0 ? (
                                             <div style={{ display: 'flex', flexDirection: 'column', lineHeight: '1.4', fontSize: '11px' }}>

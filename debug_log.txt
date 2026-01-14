@@ -1,0 +1,1 @@
+[2026-01-13T05:54:47.542Z] Shop: 0fc65a.myshopify.com, Response: {"errors":"[API] Invalid API key or access token (unrecognized login or wrong password)"}

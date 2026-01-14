@@ -1,0 +1,26 @@
+{
+  "roles": [
+    {
+      "role": "developer",
+      "access": ["all"],
+      "description": "Full access to all features"
+    },
+    {
+      "role": "admin",
+      "access": ["/", "/store-visits", "/session-data"],
+      "actions": ["search", "filter", "analytics", "import", "export"],
+      "description": "Access to analytics and management tools, less than developer"
+    },
+    {
+      "role": "merchant",
+      "access": ["/", "/store-visits"],
+      "actions": ["search", "filter"],
+      "description": "Limited access to simple analytics"
+    }
+  ],
+  "user_assignments": {
+    "admin": "admin",
+    "default": "merchant",
+    "developer": "developer"
+  }
+}

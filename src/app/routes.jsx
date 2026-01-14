@@ -10,6 +10,7 @@ import Analytics from "../modules/analytics/pages/Analytics";
 import Login from "../modules/auth/pages/Login";
 import SessionData from "../modules/sessions/pages/Sessions";
 import StoreVisit from "../modules/storeVisits/pages/StoreVisits";
+import StoreData from "../modules/storeData/pages/storeData";
 
 import { safeParseDate } from "../shared/utils/helpers";
 import authService from "../modules/auth/services/auth.service";
@@ -25,7 +26,7 @@ export default function AdminPanel() {
     const navigate = useNavigate();
 
     // Auth Hook
-    const { isAuthenticated, loginSuccess, logout } = useAuth();
+    const { isAuthenticated, userRole, loginSuccess, logout } = useAuth();
 
     // Data Fetching Hook
     const { data: rawData, loading, execute: refetchData } = useFetch(
@@ -41,11 +42,11 @@ export default function AdminPanel() {
         resetFilters: resetMainFilters
     } = useFilters({
         shopDomain: "",
-        eventStatus: "",
+        eventStatus: [],
         firstEventSort: "",
         lastEventSort: "",
         planPriceSort: ""
-    });
+    }, true);
 
     const {
         filters: exportFilters,
@@ -188,7 +189,7 @@ export default function AdminPanel() {
 
     return (
         <div className="admin-layout">
-            <Sidebar onLogout={logout} />
+            <Sidebar onLogout={logout} userRole={userRole} />
 
             <main className="admin-main">
                 <Routes>
@@ -205,6 +206,7 @@ export default function AdminPanel() {
                             onViewDetail={setSelectedItem}
                             originalDataCount={processedData.length}
                             totalAmount={totalAmount}
+                            userRole={userRole}
                         />
                     } />
                     <Route path="/import" element={
@@ -224,10 +226,11 @@ export default function AdminPanel() {
                             onExport={exportToCSV}
                         />
                     } />
-                    <Route path="/analytics" element={<Analytics data={rawData} />} />
+                    <Route path="/analytics" element={<Analytics data={rawData} updateMainFilter={updateMainFilter} />} />
                     <Route path="/metafields" element={<MetafieldSearch />} />
                     <Route path="/session-data" element={<SessionData />} />
                     <Route path="/store-visits" element={<StoreVisit />} />
+                    <Route path="/store-data/:storeName" element={<StoreData />} />
                 </Routes>
             </main>
 

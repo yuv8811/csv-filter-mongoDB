@@ -52,16 +52,18 @@ const CsvData = mongoose.model("installations", CsvSchema);
 
 const UserSchema = new mongoose.Schema({
     username: { type: String, required: true, unique: true },
-    email: { type: String, required: true }
+    email: { type: String, required: true },
+    password: { type: String, required: true }, // Encrypted password
+    role: { type: String, enum: ['developer', 'admin', 'merchant'], default: 'merchant' }
 }, { collection: 'user', versionKey: false });
 
 const User = mongoose.model("User", UserSchema);
 
-const AccessTokenSchema = new mongoose.Schema({
-    "Access token": String
-}, { collection: 'accessToken', versionKey: false });
+// const AccessTokenSchema = new mongoose.Schema({
+//     "Access token": String
+// }, { collection: 'accessToken', versionKey: false });
 
-const AccessToken = mongoose.model("AccessToken", AccessTokenSchema);
+// const AccessToken = mongoose.model("AccessToken", AccessTokenSchema);
 
 const UploadHistorySchema = new mongoose.Schema({
     fileName: String,
@@ -81,6 +83,13 @@ const SessionDataSchema = new mongoose.Schema({
 }, { collection: 'session_data', strict: false, timestamps: true });
 const SessionData = mongoose.model("SessionData", SessionDataSchema);
 
+const sessionDataDB = mongoose.connection.useDb('session_data');
+const ShopifySessionSchema = new mongoose.Schema({
+    shop: String,
+    accessToken: String,
+}, { collection: 'shopify_sessions', strict: false });
+const ShopifySession = sessionDataDB.model("ShopifySession", ShopifySessionSchema);
+
 
 
 module.exports = {
@@ -88,8 +97,9 @@ module.exports = {
     ShopInfo,
     CsvData,
     User,
-    AccessToken,
+    // AccessToken,
     UploadHistory,
     SessionData,
+    ShopifySession
 
 };

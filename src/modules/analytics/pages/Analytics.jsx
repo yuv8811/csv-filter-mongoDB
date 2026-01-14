@@ -6,6 +6,7 @@ import { ResponsivePie } from '@nivo/pie';
 import { safeParseDate } from '../../../shared/utils/helpers';
 import CustomDropdown from '../../../shared/components/CustomDropdown/CustomDropdown';
 import DateRangePicker from '../../dashboard/components/filters/DateRangePicker';
+import { getRelevantEvent } from '../../dashboard/utils/dataProcessor';
 
 const DateFilter = ({ preset, setPreset, startDate, setStartDate, endDate, setEndDate, showPicker, setShowPicker, pickerRef }) => {
     return (
@@ -127,7 +128,7 @@ const CHART_THEME = {
     }
 };
 
-const Analytics = ({ data }) => {
+const Analytics = ({ data, updateMainFilter }) => {
     const navigate = useNavigate();
     const [chartType, setChartType] = useState('bar');
     const [mainPreset, setMainPreset] = useState('all');
@@ -226,12 +227,12 @@ const Analytics = ({ data }) => {
     const { statusDistribution, bumpChartData, pieChartData } = useMemo(() => {
         const chartData = filteredMainData || [];
 
-        const allowedStatuses = ['uninstalled', 'store closed', 'installed', 'subscription charge activated'];
+        const allowedStatuses = ['Uninstalled', 'Installed'];
         const statusCounts = {};
         const timeStatusMap = {};
         const allMonths = new Set();
         const allStatuses = new Set();
-
+        
         let useDaily = false;
         if (mainStartDate && mainEndDate) {
             const start = new Date(mainStartDate);
@@ -244,16 +245,27 @@ const Analytics = ({ data }) => {
         if (chartData.length > 0) {
             chartData.forEach(item => {
                 const eventsInRange = item.additionalInfo || [];
-                const sortedEvents = [...eventsInRange].sort((a, b) => {
-                    const dateA = safeParseDate(a.date);
-                    const dateB = safeParseDate(b.date);
-                    return dateB - dateA;
-                });
+                
+                // Use centralized logic from getRelevantEvent
+                // It sorts internally and now returns the raw last event
+                const relevantEventObj = getRelevantEvent({ ...item, additionalInfo: eventsInRange });
+                const rawLastEvent = relevantEventObj ? (relevantEventObj.event || "").toLowerCase() : "unknown";
+                
+                let status = "Unknown";
+                // Logic: Uninstalled & Subscription Canceled -> Uninstalled
+                if (rawLastEvent === 'uninstalled' || rawLastEvent.includes('canceled')) {
+                    status = 'Uninstalled';
+                } 
+                // Logic: Installed, Store Closed/Reopen, Other Subscriptions -> Installed
+                else if (
+                    rawLastEvent === 'installed' || 
+                    rawLastEvent.includes('store') || 
+                    rawLastEvent.includes('subscription')
+                ) {
+                    status = 'Installed';
+                }
 
-                const latestEvent = sortedEvents.length > 0 ? sortedEvents[0].event : (item.currentEvent || "Unknown");
-                const status = latestEvent || "Unknown";
-
-                if (allowedStatuses.includes(status.toLowerCase())) {
+                if (allowedStatuses.includes(status)) {
                     statusCounts[status] = (statusCounts[status] || 0) + 1;
                     allStatuses.add(status);
                 }
@@ -261,19 +273,28 @@ const Analytics = ({ data }) => {
                 eventsInRange.forEach(event => {
                     const dateObj = safeParseDate(event.date);
                     if (!dateObj) return;
-                    const evStatus = event.event || "Unknown";
-                    if (!allowedStatuses.includes(evStatus.toLowerCase())) return;
+                    
+                    // Map inner events to the 4 categories for consistency in timeline
+                    let evStatus = "Unknown";
+                    const rawEvent = event.event ? event.event.toLowerCase() : "";
+                    
+                    if (rawEvent === 'uninstalled') evStatus = 'Uninstalled';
+                    else if (rawEvent === 'store closed') evStatus = 'Store Closed';
+                    else if (rawEvent === 'store reopen') evStatus = 'Store Reopen';
+                    else if (rawEvent === 'installed' || rawEvent.includes('subscription')) evStatus = 'Installed';
 
-                    let timeKey;
-                    if (useDaily) {
-                        timeKey = dateObj.toISOString().split('T')[0];
-                    } else {
-                        timeKey = `${dateObj.getFullYear()}-${String(dateObj.getMonth() + 1).padStart(2, '0')}`;
+                    if (allowedStatuses.includes(evStatus)) {
+                         let timeKey;
+                         if (useDaily) {
+                             timeKey = dateObj.toISOString().split('T')[0];
+                         } else {
+                             timeKey = `${dateObj.getFullYear()}-${String(dateObj.getMonth() + 1).padStart(2, '0')}`;
+                         }
+                         allMonths.add(timeKey);
+                         if (!timeStatusMap[timeKey]) timeStatusMap[timeKey] = {};
+                         timeStatusMap[timeKey][evStatus] = (timeStatusMap[timeKey][evStatus] || 0) + 1;
+                         allStatuses.add(evStatus);
                     }
-                    allMonths.add(timeKey);
-                    if (!timeStatusMap[timeKey]) timeStatusMap[timeKey] = {};
-                    timeStatusMap[timeKey][evStatus] = (timeStatusMap[timeKey][evStatus] || 0) + 1;
-                    allStatuses.add(evStatus);
                 });
             });
         }
@@ -564,6 +585,20 @@ const Analytics = ({ data }) => {
                         labelTextColor="#ffffff"
                         role="application"
                         ariaLabel="Status Distribution Chart"
+                        isInteractive={true}
+                        onClick={(node) => {
+                            const status = node.indexValue;
+                            let filterKey = "";
+                            
+                            // Map Analytics Status to DataProcessor Group Keys
+                            if (status === 'Installed') filterKey = 'Active';
+                            else if (status === 'Uninstalled') filterKey = 'Inactive';
+                            else filterKey = status ? status.toLowerCase() : "";
+
+                            if (filterKey) {
+                                navigate(`/?eventStatus=${filterKey}`);
+                            }
+                        }}
                         theme={{
                             ...CHART_THEME,
                             axis: {

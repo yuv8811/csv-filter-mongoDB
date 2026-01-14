@@ -15,14 +15,10 @@ const Login = ({ onLoginSuccess }) => {
         setError('');
         setLoading(true);
 
-        if (password !== "Admin@123") {
-            setError("Invalid credentials"); // Keep error generic for security
-            setLoading(false);
-            return;
-        }
+
 
         try {
-            const data = await loginService.login(identifier);
+            const data = await loginService.login(identifier, password);
             if (data && !data.error) {
                 if (onLoginSuccess) {
                     onLoginSuccess(data.user);
@@ -137,6 +133,7 @@ const Login = ({ onLoginSuccess }) => {
                             </>
                         )}
                     </button>
+                    
                 </form>
 
 

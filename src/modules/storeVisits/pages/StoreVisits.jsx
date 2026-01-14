@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 import "../../../styles/App.css";
 import "../../../styles/sidepanel.css";
@@ -7,6 +8,7 @@ import storeVisitService from "../services/storeVisits.service";
 import { normalizeDomain } from "../../../shared/utils/helpers";
 
 const StoreVisit = () => {
+    const navigate = useNavigate();
     const [data, setData] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -36,6 +38,10 @@ const StoreVisit = () => {
         return () => controller.abort();
     }, []);
 
+    const onViewDetail = (item) => {
+        navigate(`/store-data/${encodeURIComponent(item.shopDomain)}`);
+    };
+
     if (loading) {
         return (
             <div className="loading-container">
@@ -61,33 +67,44 @@ const StoreVisit = () => {
             <div className="table-responsive-elite">
                 <table className="custom-table">
                     <thead>
-                        <tr>
-                            <th>Shop Domain</th>
-                            <th>Customer Visits</th>
-                        </tr>
-                    </thead>
+						<tr>
+							<th style={{ textAlign: "left" }}>Shop Domain</th>
+							<th style={{ textAlign: "center" }}>Customer Visits</th>
+							<th style={{ textAlign: "center" }}>Actions</th>
+						</tr>
+					</thead>
 
-                    <tbody>
-                        {data.length === 0 ? (
-                            <tr>
-                                <td colSpan="2" className="empty-state-cell">
-                                    No records found
-                                </td>
-                            </tr>
-                        ) : (
-                            data.map((item) => (
-                                <tr key={item.shopDomain}>
-                                    <td className="font-semibold">
-                                        <div className="domain-wrapper">
-                                            <a className="store-domain-link" href={`https://${normalizeDomain(item.shopDomain)}`} target="_blank" rel="noopener noreferrer">{normalizeDomain(item.shopDomain)}</a>
-                                        </div>
-                                    </td>
-                                    <td className="font-mono-muted font-bold">
-                                        {item.totalCount ?? 0}
-                                    </td>
-                                </tr>
-                            ))
-                        )}
+					<tbody>
+						{data.length === 0 ? (
+							<tr>
+								<td colSpan="3" className="empty-state-cell">
+									No records found
+								</td>
+							</tr>
+						) : (
+							data.map((item) => (
+								<tr key={item.shopDomain}>
+									<td className="font-semibold" style={{ textAlign: "left" }}>
+										<div className="domain-wrapper">
+											<a className="store-domain-link" href={`https://${normalizeDomain(item.shopDomain)}`} target="_blank" rel="noopener noreferrer">
+												{normalizeDomain(item.shopDomain)}
+											</a>
+										</div>
+									</td>
+									<td className="font-mono-muted font-bold" style={{ textAlign: "center" }}>
+										{item.totalCount ?? 0}
+									</td>
+									<td style={{ textAlign: "center" }}>
+										<button type="button" className="filter-icon-button" style={{ margin: "0 auto" }} onClick={() => onViewDetail(item)}>
+											<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+												<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+												<circle cx="12" cy="12" r="3" />
+											</svg>
+										</button>
+									</td>
+								</tr>
+							))
+						)}
                     </tbody>
                 </table>
             </div>
