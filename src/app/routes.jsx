@@ -230,6 +230,7 @@ export default function AdminPanel() {
                     <Route path="/metafields" element={<MetafieldSearch />} />
                     <Route path="/session-data" element={<SessionData />} />
                     <Route path="/store-visits" element={<StoreVisit />} />
+                    <Route path="/store-data" element={<StoreVisit />} />
                     <Route path="/store-data/:storeName" element={<StoreData />} />
                 </Routes>
             </main>

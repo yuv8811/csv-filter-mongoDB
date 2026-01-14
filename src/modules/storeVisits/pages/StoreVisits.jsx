@@ -57,11 +57,24 @@ const StoreVisit = () => {
 
     return (
         <div className="repository-container">
-            <div style={{ marginBottom: "1rem" }}>
-                <h1>Analytics</h1>
-                <p>
-                    Total Stores: <strong>{data.length}</strong>
-                </p>
+            <div style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center' }}>
+                <button 
+                    onClick={() => navigate('/')}
+                    className="filter-icon-button"
+                    style={{ marginRight: '1rem' }}
+                    title="Back to Dashboard"
+                >
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <line x1="19" y1="12" x2="5" y2="12"></line>
+                        <polyline points="12 19 5 12 12 5"></polyline>
+                    </svg>
+                </button>
+                <div>
+                    <h1 style={{ margin: 0 }}>Analytics</h1>
+                    <p style={{ margin: 0, fontSize: '0.9rem', color: '#64748b' }}>
+                        Total Stores: <strong>{data.length}</strong>
+                    </p>
+                </div>
             </div>
 
             <div className="table-responsive-elite">
