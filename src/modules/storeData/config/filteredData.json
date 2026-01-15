@@ -1,0 +1,117 @@
+{
+    "standardAccountTabsMenu": {
+        "details": {
+            "fields": [
+                "status"
+            ]
+        }
+    },
+    "flowProgramsCount": {
+        "details": {
+            "fields": [
+                "name",
+                "status"
+            ]
+        }
+    },
+    "newCustomerAccountProfileFields": {
+        "details": {
+            "fields": [
+                "type",
+                "klaviyo"
+            ]
+        }
+    },
+    "klaviyoIntegration": {
+        "fields": [
+            "token_type",
+            "expires_in",
+            "status"
+        ]
+    },
+    "mailchimpIntegration": {
+        "preview": [
+            "accountname",
+            "user_id",
+            "status"
+        ],
+        "fields": [
+            "login",
+            "login_id",
+            "login_name",
+            "login_email"
+        ],
+        "login": {
+            "preview": [
+                "login_id",
+                "login_name",
+                "login_email"
+            ]
+        }
+    },
+    "omnisendIntegration": {
+        "fields": [
+            "status",
+            "expires_in"
+        ]
+    },
+    "registerAccountFields": {
+        "details": {
+            "fields": [
+                "name",
+                "required"
+            ]
+        }
+    },
+    "advancedAccountTabsMenu": {
+        "fields": [
+            "status"
+        ]
+    },
+    "advancedAccountSettings": {
+        "preview": [
+            "app_access_toggle",
+            "cancel_order",
+            "reorder_toggle"
+        ],
+        "fields": [
+            "app_access_toggle",
+            "cancel_order",
+            "reorder_toggle",
+            "recently_viewed_products_status",
+            "recently_viewed_products_variant_status",
+            "recently_viewed_products_quantity_status",
+            "recently_viewed_products_price_status",
+            "recently_viewed_products_add_to_cart_status",
+            "top_ordered_products_status",
+            "top_ordered_products_variant_status",
+            "top_ordered_products_quantity_status",
+            "top_ordered_products_price_status",
+            "top_ordered_products_add_to_cart_status",
+            "newCustomerAccountDashboard"
+        ]
+    },
+    "legacyCustomerAccountFields": {
+        "details": {
+            "fields": [
+                "name",
+                "type",
+                "required"
+            ]
+        }
+    },
+    "formBuilder": {
+        "details": {
+            "fields": [
+                "formStatus",
+                "created_at"
+            ]
+        }
+    },
+    "accountVesionAndLastSessionActivity": {
+        "preview": [
+            "accountType",
+            "lastActivityDate"
+        ]
+    }
+}

@@ -99,9 +99,7 @@ const StoreVisit = () => {
 								<tr key={item.shopDomain}>
 									<td className="font-semibold" style={{ textAlign: "left" }}>
 										<div className="domain-wrapper">
-											<a className="store-domain-link" href={`https://${normalizeDomain(item.shopDomain)}`} target="_blank" rel="noopener noreferrer">
 												{normalizeDomain(item.shopDomain)}
-											</a>
 										</div>
 									</td>
 									<td className="font-mono-muted font-bold" style={{ textAlign: "center" }}>

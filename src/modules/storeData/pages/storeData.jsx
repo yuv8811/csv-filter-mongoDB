@@ -2,7 +2,10 @@ import React, { useEffect, useState, useMemo } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import storeDataService from '../services/storeData.service';
 import { safeParseDate } from '../../../shared/utils/helpers';
-import "../../../styles/storeVisits.css"; // Ensure styles are available
+import "../../../styles/storeVisits.css";
+import DataCard from '../components/DataCard';
+import Icons from '../components/Icons';
+import { getFriendlyName, getFieldsWhitelist, getPreviewWhitelist, hasPreviewAndFields } from '../utils/storeDataHelpers';
 
 const StoreData = () => {
     const { storeName } = useParams();
@@ -38,14 +41,12 @@ const StoreData = () => {
     // Resolve data at current path
     const currentData = useMemo(() => {
         if (!fullData) return null;
-        // Normalize root: if array, take first item (assuming single store view)
         let p = Array.isArray(fullData) ? fullData[0] : fullData;
         
         for (const key of currentPath) {
             if (p && p[key] !== undefined) {
                 p = p[key];
             } else if (p && p.summary && p.summary[key] !== undefined) {
-                // Fallback: Check inside 'summary' (e.g. for shortcut paths)
                 p = p.summary[key];
             } else {
                 return undefined;
@@ -62,11 +63,7 @@ const StoreData = () => {
     const handleBack = () => {
         if (currentPath.length > 0) {
             const newPath = currentPath.slice(0, -1).join('.');
-            if (newPath) {
-                setSearchParams({ path: newPath });
-            } else {
-                setSearchParams({});
-            }
+            setSearchParams(newPath ? { path: newPath } : {});
         } else {
             navigate('/store-data');
         }
@@ -78,167 +75,197 @@ const StoreData = () => {
         return d ? d.toLocaleDateString() + ' ' + d.toLocaleTimeString() : String(dateVal);
     };
 
-    if (loading) return <div className="loading-container"><div className="loader"></div><p>Loading Store Data...</p></div>;
+    if (loading) return (
+        <div className="loading-container">
+            <div className="loader"></div>
+            <p style={{color: '#64748b', fontWeight: 500}}>Loading Store Data...</p>
+        </div>
+    );
+    
     if (error) return <div className="error-message">{error}</div>;
 
     const isArrayView = Array.isArray(currentData);
-    const isObjectView = currentData && typeof currentData === 'object' && !isArrayView;
-
     const isRoot = !currentPathStr;
     const rootItem = isRoot && fullData ? (Array.isArray(fullData) ? fullData[0] : fullData) : null;
 
     return (
-        <div className="repository-container" style={{ padding: '2rem', maxWidth: '1200px', margin: '0 auto' }}>
-            <div className="data-header" style={{ marginBottom: '1.5rem', display: 'block' }}>
-                 <div style={{ display: 'flex', alignItems: 'center', marginBottom: '1rem' }}>
-                    <button 
-                        onClick={handleBack}
-                        className="filter-icon-button"
-                        style={{ marginRight: '1rem' }}
-                        title="Back"
-                    >
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <line x1="19" y1="12" x2="5" y2="12"></line>
-                            <polyline points="12 19 5 12 12 5"></polyline>
-                        </svg>
+        <div className="premium-container">
+            <div className="premium-header">
+                <div className="header-top">
+                    <button onClick={handleBack} className="back-button" title="Back">
+                        <Icons.Back />
                     </button>
-                    <h1 style={{ fontSize: '2rem', color: '#1e293b', margin: 0, display: 'flex', alignItems: 'center', flexWrap: 'wrap' }}>
-                        <span 
-                            onClick={() => setSearchParams({})} 
-                            style={{ cursor: 'pointer', textDecoration: 'none' }}
-                            onMouseOver={(e) => e.target.style.textDecoration = 'underline'}
-                            onMouseOut={(e) => e.target.style.textDecoration = 'none'}
-                        >
-                            {storeName}
-                        </span>
-                        
-                        {currentPathStr && currentPathStr.split('.').map((segment, index, arr) => {
-                            const segmentPath = arr.slice(0, index + 1).join('.');
-                            return (
-                                <React.Fragment key={index}>
-                                    <span style={{ fontSize: '1rem', color: '#94a3b8', margin: '0 0.5rem' }}>/</span>
-                                    <span 
-                                        onClick={() => setSearchParams({ path: segmentPath })}
-                                        style={{ 
-                                            fontSize: '1rem', 
-                                            color: '#64748b', 
-                                            fontWeight: 'normal', 
-                                            cursor: 'pointer' 
-                                        }}
-                                        onMouseOver={(e) => {
-                                            e.target.style.textDecoration = 'underline';
-                                            e.target.style.color = '#334155';
-                                        }}
-                                        onMouseOut={(e) => {
-                                            e.target.style.textDecoration = 'none';
-                                            e.target.style.color = '#64748b';
-                                        }}
-                                    >
-                                        {segment}
-                                    </span>
-                                </React.Fragment>
-                            );
-                        })}
-                    </h1>
+                    <h1 className="page-title">{storeName}</h1>
+                </div>
+                
+                <div className="premium-breadcrumbs">
+                    <div 
+                        className={`breadcrumb-item ${!currentPathStr ? 'active' : ''}`}
+                        onClick={() => setSearchParams({})}
+                    >
+                        Root
+                    </div>
+                    {currentPathStr && currentPathStr.split('.').map((segment, index, arr) => {
+                        const segmentPath = arr.slice(0, index + 1).join('.');
+                        const isActive = index === arr.length - 1;
+                        return (
+                            <React.Fragment key={index}>
+                                <span className="breadcrumb-separator"><Icons.ChevronRight /></span>
+                                <div 
+                                    className={`breadcrumb-item ${isActive ? 'active' : ''}`}
+                                    onClick={() => !isActive && setSearchParams({ path: segmentPath })}
+                                >
+                                    {getFriendlyName(segment)}
+                                </div>
+                            </React.Fragment>
+                        );
+                    })}
                 </div>
             </div>
 
-            <div className="table-responsive-elite">
-                <table className="custom-table">
-                    <thead>
-                        {isRoot ? (
-                            <tr>
-                                <th colSpan="2" style={{ textAlign: "left", fontSize: '1.2rem', padding: '1rem' }}>
-                                    {storeName}
-                                </th>
-                            </tr>
-                        ) : (
-                             <tr>
-                                <th style={{ textAlign: "left", width: "40%" }}>{isArrayView ? "Index / ID" : "Field Name"}</th>
-                                <th style={{ textAlign: "center" }}>Action / Value</th>
-                            </tr>
-                        )}
-                    </thead>
-                    <tbody>
-                        {isRoot && rootItem ? (
-                            <>
-                                {/* Created At */}
-                                <tr>
-                                    <td className="font-semibold" style={{ textAlign: "left" }}>Created At</td>
-                                    <td className="font-mono-muted" style={{ textAlign: "center" }}>
-                                        {formatDate(rootItem.createdAt || rootItem.created_at)}
-                                    </td>
-                                </tr>
-                                {/* Updated At */}
-                                <tr>
-                                    <td className="font-semibold" style={{ textAlign: "left" }}>Updated At</td>
-                                    <td className="font-mono-muted" style={{ textAlign: "center" }}>
-                                        {formatDate(rootItem.updatedAt || rootItem.updated_at)}
-                                    </td>
-                                </tr>
-                                {/* Summary Details */}
-                                {rootItem.summary && typeof rootItem.summary === 'object' && Object.entries(rootItem.summary).map(([key, val]) => {
-                                    const isComplex = val && typeof val === 'object';
-                                    return (
-                                        <tr key={key}>
-                                            <td className="font-semibold" style={{ textAlign: "left" }}>{key}</td>
-                                            <td style={{ textAlign: "center" }}>
-                                                {isComplex ? (
-                                                    <button 
-                                                        onClick={() => handleNavigate(key)}
-                                                        className="filter-icon-button action-btn-centered"
-                                                        style={{ margin: '0 auto' }}
-                                                        title="View Details"
-                                                    >
-                                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-                                                            <circle cx="12" cy="12" r="3" />
-                                                        </svg>
-                                                    </button>
-                                                ) : (
-                                                    <span style={{ color: '#64748b', fontFamily: 'monospace' }}>
-                                                        {String(val)}
-                                                    </span>
-                                                )}
-                                            </td>
-                                        </tr>
-                                    );
-                                })}
-                                {(!rootItem.summary || Object.keys(rootItem.summary).length === 0) && (
-                                     <tr><td colSpan="2" className="empty-state-cell">No summary data available</td></tr>
-                                )}
-                            </>
-                        ) : (
-                         /* Existing Logic for sub-paths (Drill Down) */
-                         isArrayView ? (
-                            currentData.length === 0 ? (
-                                <tr><td colSpan="2" className="empty-state-cell">No records found</td></tr>
-                            ) : (
-                                currentData.map((item, index) => (
-                                    <tr key={index}>
-                                        <td className="font-semibold" style={{ textAlign: "left" }}>
-                                            {item.shopDomain || item.storeName || `Item ${index}`}
-                                        </td>
-                                        <td style={{ textAlign: "center" }}>
-                                            <button 
-                                                type="button" 
-                                                className="filter-icon-button action-btn-centered" 
-                                                onClick={() => handleNavigate(index)}
-                                                title="View Details"
-                                            >
-                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-                                                    <circle cx="12" cy="12" r="3" />
-                                                </svg>
-                                            </button>
-                                        </td>
-                                    </tr>
+            <div className="premium-content">
+                {isRoot && rootItem ? (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+                        {/* Meta Info Section */}
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem' }}>
+                             <DataCard 
+                                label="Created At" 
+                                value={formatDate(rootItem.createdAt || rootItem.created_at)} 
+                                type="date"
+                            />
+                             <DataCard 
+                                label="Updated At" 
+                                value={formatDate(rootItem.updatedAt || rootItem.updated_at)} 
+                                type="date"
+                            />
+                        </div>
+
+                        {/* Summary Section */}
+                        <h2 style={{ fontSize: '1.5rem', fontWeight: '800', color: '#1e293b', borderBottom: '1px solid #e2e8f0', paddingBottom: '0.75rem' }}>
+                            Data Summary
+                        </h2>
+                        
+                        <div className="data-grid">
+                            {/* Render Simple Status Cards First */}
+                            {rootItem.summary && Object.entries(rootItem.summary)
+                                .filter(([_, val]) => !val || typeof val !== 'object')
+                                .map(([key, val]) => (
+                                    <DataCard
+                                        key={key}
+                                        label={getFriendlyName(key)}
+                                        value={String(val)}
+                                        type={typeof val}
+                                        isClickable={false}
+                                        dataObject={null}
+                                        onClick={undefined}
+                                        filterKeys={null}
+                                    />
                                 ))
+                            }
+
+                            {/* Render Array Cards (Folders) Second */}
+                            {rootItem.summary && Object.entries(rootItem.summary)
+                                .filter(([_, val]) => val && Array.isArray(val))
+                                .map(([key, val]) => {
+                                    // Summary items use the PREVIEW filter
+                                    const filter = getPreviewWhitelist([key]);
+                                    return (
+                                        <DataCard
+                                            key={key}
+                                            label={getFriendlyName(key)}
+                                            value={val}
+                                            type="array"
+                                            isClickable={true}
+                                            dataObject={null} // Arrays pass null unless we want preview, usually handled inside DataCard now
+                                            onClick={() => handleNavigate(key)}
+                                            filterKeys={filter}
+                                        />
+                                    );
+                                })
+                            }
+
+                            {/* Render Object Cards (Detailed Lists) Third */}
+                            {rootItem.summary && Object.entries(rootItem.summary)
+                                .filter(([_, val]) => val && typeof val === 'object' && !Array.isArray(val))
+                                .sort(([keyA, valA], [keyB, valB]) => {
+                                    const listA = getPreviewWhitelist([keyA]) || Object.keys(valA);
+                                    const listB = getPreviewWhitelist([keyB]) || Object.keys(valB);
+                                    return listA.length - listB.length;
+                                })
+                                .map(([key, val]) => {
+                                    // Summary items use the PREVIEW filter
+                                    const filter = getPreviewWhitelist([key]);
+                                    const showDetails = hasPreviewAndFields([key]);
+
+                                    return (
+                                        <DataCard
+                                            key={key}
+                                            label={getFriendlyName(key)}
+                                            value={val}
+                                            type="object"
+                                            isClickable={true}
+                                            dataObject={val}
+                                            onClick={() => handleNavigate(key)}
+                                            filterKeys={filter}
+                                            showDetailsButton={showDetails}
+                                        />
+                                    );
+                                })
+                            }
+
+                            {(!rootItem.summary || Object.keys(rootItem.summary).length === 0) && (
+                                <div className="empty-state">No summary data available</div>
+                            )}
+                        </div>
+                    </div>
+                ) : (
+                    /* Drill Down View */
+                    <div className="data-grid">
+                        {isArrayView ? (
+                            currentData.length === 0 ? (
+                                <div className="empty-state" style={{ gridColumn: '1/-1' }}>No records found</div>
+                            ) : (
+                                currentData.map((item, index) => {
+                                    const isItemObject = item && typeof item === 'object';
+                                    
+                                    // Try to determine a meaningful label
+                                    const formTitleLabel = (item.formTitle && item.formTitle.heading) ? item.formTitle.heading : null;
+                                    const rawLabel = formTitleLabel || item.shopDomain || item.storeName || item.title || item.name || item.id || `Item ${index + 1}`;
+                                    const label = getFriendlyName(rawLabel);
+
+                                    // Context-aware filter for PREVIEW on the card
+                                    let activeFilter = getPreviewWhitelist([...currentPath, index]);
+                                    if (!activeFilter || activeFilter.length === 0) {
+                                        activeFilter = getPreviewWhitelist(currentPath);
+                                    }
+
+                                    return (
+                                        <DataCard
+                                            key={index}
+                                            label={String(label)}
+                                            value={isItemObject ? 'Details' : String(item)}
+                                            type={isItemObject ? 'object' : typeof item}
+                                            isClickable={isItemObject}
+                                            dataObject={isItemObject ? item : null}
+                                            onClick={() => handleNavigate(index)}
+                                            filterKeys={activeFilter}
+                                        />
+                                    );
+                                })
                             )
                         ) : (
-                             /* Object View (Drill Down) */
-                             Object.keys(currentData || {})
+                            /* Object View */
+                            Object.keys(currentData || {})
                                 .filter((key) => {
+                                    // Filter Logic: Decide what keys strictly SHOW in this view (Detail View)
+                                    // Use 'fields' whitelist here
+                                    const currentViewWhitelist = getFieldsWhitelist(currentPath);
+                                    
+                                    if (currentViewWhitelist && currentViewWhitelist.length > 0) {
+                                        return currentViewWhitelist.includes(key);
+                                    }
+
+                                    // Default Fallback
                                     const pathStr = currentPathStr ? currentPathStr.toLowerCase() : "";
                                     const isAnalyticsOrFilter = pathStr.includes("analytics") || pathStr.includes("filter");
                                     if (isAnalyticsOrFilter) {
@@ -250,35 +277,25 @@ const StoreData = () => {
                                 .map((key) => {
                                     const val = currentData[key];
                                     const isComplex = (val && typeof val === 'object');
+                                    // For child cards, we want their PREVIEW config
+                                    const nextLevelFilter = getPreviewWhitelist([...currentPath, key]);
+                                    
                                     return (
-                                        <tr key={key}>
-                                        <td className="font-semibold" style={{ textAlign: "left" }}>{key}</td>
-                                        <td style={{ textAlign: "center" }}>
-                                            {isComplex ? (
-                                                <button 
-                                                    onClick={() => handleNavigate(key)}
-                                                    className="filter-icon-button action-btn-centered"
-                                                    style={{ margin: '0 auto' }}
-                                                    title="View Details"
-                                                >
-                                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-                                                        <circle cx="12" cy="12" r="3" />
-                                                    </svg>
-                                                </button>
-                                            ) : (
-                                                <span style={{ color: '#64748b', fontFamily: 'monospace' }}>
-                                                    {String(val)}
-                                                </span>
-                                            )}
-                                        </td>
-                                    </tr>
-                                );
-                            })
-                        )
-                    )}
-                    </tbody>
-                </table>
+                                        <DataCard
+                                            key={key}
+                                            label={getFriendlyName(key)}
+                                            value={isComplex ? val : String(val)}
+                                            type={isComplex ? (Array.isArray(val) ? 'array' : 'object') : (typeof val)}
+                                            isClickable={isComplex}
+                                            dataObject={isComplex && !Array.isArray(val) ? val : null}
+                                            onClick={() => handleNavigate(key)}
+                                            filterKeys={nextLevelFilter}
+                                        />
+                                    );
+                                })
+                        )}
+                    </div>
+                )}
             </div>
         </div>
     );

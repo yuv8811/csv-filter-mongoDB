@@ -1,7 +1,8 @@
-import { NavLink } from 'react-router-dom';
+import { NavLink, useLocation } from 'react-router-dom';
 import accessConfig from '../../../config/access.json';
 
 const Sidebar = ({ onLogout, userRole }) => {
+    const location = useLocation();
     // Helper to check if a path is allowed for the current role
     const isAllowed = (path) => {
         try {
@@ -66,7 +67,7 @@ const Sidebar = ({ onLogout, userRole }) => {
                     </NavLink>
                 )}
                 {isAllowed('/store-visits') && (
-                    <NavLink className={({ isActive }) => `tab-button ${isActive ? "active" : ""}`} to="/store-visits">
+                    <NavLink className={({ isActive }) => `tab-button ${isActive || location.pathname.includes('store-data') ? "active" : ""}`} to="/store-visits">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                             <path d="M3 6l9-4 9 4v16H3V6z" />
                             <path d="M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z" />
