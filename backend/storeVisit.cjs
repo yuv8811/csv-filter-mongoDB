@@ -9,7 +9,7 @@ router.get("/store-visits", async (req, res) => {
             return res.status(503).json({ error: "Database not connected" });
         }
 
-        const analyticsDb = mongoose.connection.useDb("Custlo_Analytics_Events");
+        const analyticsDb = mongoose.connection.useDb("Y_Custlo_Analytics_Events");
         const collections = await analyticsDb.db.listCollections().toArray();
 
         const stats = await Promise.all(

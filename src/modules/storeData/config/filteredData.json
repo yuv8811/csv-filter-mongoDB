@@ -24,35 +24,17 @@
     },
     "klaviyoIntegration": {
         "fields": [
-            "token_type",
-            "expires_in",
             "status"
         ]
     },
     "mailchimpIntegration": {
-        "preview": [
-            "accountname",
-            "user_id",
-            "status"
-        ],
         "fields": [
-            "login",
-            "login_id",
-            "login_name",
-            "login_email"
-        ],
-        "login": {
-            "preview": [
-                "login_id",
-                "login_name",
-                "login_email"
-            ]
-        }
+            "status"
+        ]
     },
     "omnisendIntegration": {
         "fields": [
-            "status",
-            "expires_in"
+            "status"
         ]
     },
     "registerAccountFields": {
@@ -109,7 +91,7 @@
         }
     },
     "accountVesionAndLastSessionActivity": {
-        "preview": [
+        "fields": [
             "accountType",
             "lastActivityDate"
         ]

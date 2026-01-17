@@ -42,30 +42,7 @@ const Sidebar = ({ onLogout, userRole }) => {
                     </NavLink>
                 )}
 
-                {isAllowed('/metafields') && (
-                    <NavLink
-                        to="/metafields"
-                        className={({ isActive }) => `tab-button ${isActive ? "active" : ""}`}
-                    >
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                            <circle cx="11" cy="11" r="8" />
-                            <line x1="21" y1="21" x2="16.65" y2="16.65" />
-                            <line x1="11" y1="8" x2="11" y2="14" />
-                            <line x1="8" y1="11" x2="14" y2="11" />
-                        </svg>
-                        Metafield Search
-                    </NavLink>
-                )}
-                {isAllowed('/session-data') && (
-                    <NavLink className={({ isActive }) => `tab-button ${isActive ? "active" : ""}`} to="/session-data">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                            <ellipse cx="12" cy="5" rx="9" ry="3" />
-                            <path d="M3 5v6c0 1.7 4 3 9 3s9-1.3 9-3V5" />
-                            <path d="M3 11v6c0 1.7 4 3 9 3s9-1.3 9-3v-6" />
-                        </svg>
-                        Session Data
-                    </NavLink>
-                )}
+
                 {isAllowed('/store-visits') && (
                     <NavLink className={({ isActive }) => `tab-button ${isActive || location.pathname.includes('store-data') ? "active" : ""}`} to="/store-visits">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">

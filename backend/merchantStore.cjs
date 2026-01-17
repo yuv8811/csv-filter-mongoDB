@@ -16,7 +16,7 @@ router.get("/merchant-store/:storeName", async (req, res) => {
         }
 
         // Switch to 'Merchant_Store_Data' database
-        const merchantDb = mongoose.connection.useDb("Merchant_Store_Data");
+        const merchantDb = mongoose.connection.useDb("Y_Merchant_Store_Data");
         
         // Access the collection dynamically
         const collection = merchantDb.db.collection(storeName);

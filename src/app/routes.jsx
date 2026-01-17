@@ -5,10 +5,10 @@ import RepositoryExplorer from "../modules/dashboard/components/RepositoryExplor
 import ExportEngine from "../modules/export/components/ExportEngine";
 import Upload from "../modules/import/components/Upload";
 import DetailModal from "../modules/dashboard/components/DetailModal";
-import MetafieldSearch from "../modules/metafields/components/MetafieldSearch";
+
 import Analytics from "../modules/analytics/pages/Analytics";
 import Login from "../modules/auth/pages/Login";
-import SessionData from "../modules/sessions/pages/Sessions";
+
 import StoreVisit from "../modules/storeVisits/pages/StoreVisits";
 import StoreData from "../modules/storeData/pages/storeData";
 
@@ -227,8 +227,8 @@ export default function AdminPanel() {
                         />
                     } />
                     <Route path="/analytics" element={<Analytics data={rawData} updateMainFilter={updateMainFilter} />} />
-                    <Route path="/metafields" element={<MetafieldSearch />} />
-                    <Route path="/session-data" element={<SessionData />} />
+
+
                     <Route path="/store-visits" element={<StoreVisit />} />
                     <Route path="/store-data" element={<StoreVisit />} />
                     <Route path="/store-data/:storeName" element={<StoreData />} />
