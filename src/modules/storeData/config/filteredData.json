@@ -17,7 +17,6 @@
     "newCustomerAccountProfileFields": {
         "details": {
             "fields": [
-                "type",
                 "klaviyo"
             ]
         }

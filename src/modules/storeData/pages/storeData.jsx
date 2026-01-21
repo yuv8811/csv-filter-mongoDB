@@ -152,21 +152,28 @@ const StoreData = () => {
         (keys.length === 1 && val.status !== undefined);
 
       if (val.status !== undefined && isActuallySingleStatus) {
-        if (val.status === true) {
+        let s = String(val.status);
+        const lower = s.toLowerCase();
+
+        if (
+          val.status === true ||
+          lower === "active" ||
+          lower === "enabled" ||
+          lower === "yes"
+        ) {
           return <span className="status-badge status-success">Active</span>;
         }
-        const s = String(val.status);
-        const isGood =
-          s.toLowerCase() === "active" || s.toLowerCase() === "enabled";
-        return (
-          <span
-            className={`status-badge ${
-              isGood ? "status-success" : "status-neutral"
-            }`}
-          >
-            {s}
-          </span>
-        );
+        if (
+          val.status === false ||
+          lower === "inactive" ||
+          lower === "disabled" ||
+          lower === "no" ||
+          lower === "false"
+        ) {
+          return <span className="status-badge status-error">Inactive</span>;
+        }
+
+        return <span className="status-badge status-neutral">{s}</span>;
       }
 
       return (
@@ -185,13 +192,29 @@ const StoreData = () => {
     }
 
     if (type === "simple") {
-      if (val === true) {
-        return <span className="status-badge status-success">Active</span>;
-      }
       const strVal = String(val);
-      if (strVal.toLowerCase() === "active") {
+      const lower = strVal.toLowerCase();
+
+      if (
+        val === true ||
+        lower === "active" ||
+        lower === "yes" ||
+        lower === "enabled" ||
+        lower === "connected"
+      ) {
         return <span className="status-badge status-success">Active</span>;
       }
+
+      if (
+        val === false ||
+        lower === "inactive" ||
+        lower === "no" ||
+        lower === "disabled" ||
+        lower === "false"
+      ) {
+        return <span className="status-badge status-error">Inactive</span>;
+      }
+
       return (
         <span style={{ fontWeight: 600, color: "#334155" }}>{strVal}</span>
       );

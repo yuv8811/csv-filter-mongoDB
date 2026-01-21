@@ -7,7 +7,7 @@
     "klaviyoIntegration": "Klaviyo Integration",
     "mailchimpIntegration": "Mailchimp Integration",
     "omnisendIntegration": "Omnisend Integration",
-    "newShopifyPricing": "Shopify Pricing",
+    "newShopifyPricing": "New Shopify Pricing",
     "registerAccountFields": "Register Account Fields",
     "advancedAccountTabsMenu": "Advanced Account Tabs Menu",
     "advancedAccountSettings": "Advanced Account Settings",
@@ -21,7 +21,7 @@
     "login_id": "Login ID",
     "login_name": "Login Name",
     "login_email": "Login Email",
-    "app_access_toggle": "App Access Toggle",
+    "app_access_toggle": "App Status",
     "cancel_order": "Cancel Order",
     "reorder_toggle": "Reorder Toggle",
     "recently_viewed_products_status": "Recently Viewed Products Status",
@@ -40,5 +40,7 @@
     "status": "Status",
     "created_at": "Created At",
     "accountType": "Account Type",
-    "lastActivityDate": "Last Activity Date"
+    "lastActivityDate": "Last Activity Date",
+    "First_name": "First Name",
+    "Last_name": "Last Name"
 }
