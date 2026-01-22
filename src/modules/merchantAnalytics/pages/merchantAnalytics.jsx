@@ -163,209 +163,63 @@ const BarChartCard = ({
     (data[0].Active !== undefined || data[0].Inactive !== undefined);
 
   return (
-    <div
-      className="modern-table-card"
-      style={{
-        transition: "all 0.3s ease",
-        border: "1px solid #e2e8f0",
-        boxShadow: "0 4px 6px -1px rgba(0,0,0,0.02)",
-        display: "flex",
-        flexDirection: "column",
-        height: "100%",
-        background: "#fff",
-        borderRadius: "16px",
-        ...style,
-      }}
-    >
-      <div
-        style={{
-          padding: "1.5rem 1.75rem 1rem",
-          borderBottom: "1px solid #f1f5f9",
-        }}
-      >
-        <h2
-          style={{
-            margin: 0,
-            fontSize: "1rem",
-            fontWeight: 700,
-            color: "#64748b",
-            textTransform: "uppercase",
-            letterSpacing: "0.05em",
-          }}
-        >
-          {title}
-        </h2>
+    <div className="analytics-card" style={style}>
+      <div className="card-header-container">
+        <h2 className="analytics-card-title">{title}</h2>
       </div>
 
-      <div
-        style={{
-          padding: "1rem 1.75rem",
-          overflowY: "auto",
-          maxHeight: "400px",
-          flex: 1,
-        }}
-      >
+      <div className="bar-chart-content">
         {data.length ? (
-          <div
-            style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}
-          >
+          <div className="bar-list-container">
             {/* Header Row */}
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                paddingBottom: "0.75rem",
-                marginBottom: "0.5rem",
-                borderBottom: "2px solid #f1f5f9",
-              }}
-            >
-              <span
-                style={{
-                  fontSize: "0.75rem",
-                  fontWeight: 700,
-                  color: "#94a3b8",
-                  textTransform: "uppercase",
-                  letterSpacing: "0.05em",
-                }}
-              >
-                Label
-              </span>
-              <div style={{ display: "flex", gap: "1.5rem" }}>
+            <div className="bar-header-row">
+              <span className="bar-col-header">Label</span>
+              <div className="bar-values-group">
                 {hasActiveInactive ? (
                   <>
-                    <span
-                      style={{
-                        width: "60px",
-                        textAlign: "right",
-                        fontSize: "0.75rem",
-                        fontWeight: 700,
-                        color: "#94a3b8",
-                        textTransform: "uppercase",
-                        letterSpacing: "0.05em",
-                      }}
-                    >
-                      Active
-                    </span>
-                    <span
-                      style={{
-                        width: "60px",
-                        textAlign: "right",
-                        fontSize: "0.75rem",
-                        fontWeight: 700,
-                        color: "#94a3b8",
-                        textTransform: "uppercase",
-                        letterSpacing: "0.05em",
-                      }}
-                    >
-                      Inactive
-                    </span>
+                    <span className="bar-value-header">Active</span>
+                    <span className="bar-value-header">Inactive</span>
                   </>
                 ) : (
-                  <span
-                    style={{
-                      width: "60px",
-                      textAlign: "right",
-                      fontSize: "0.75rem",
-                      fontWeight: 700,
-                      color: "#94a3b8",
-                      textTransform: "uppercase",
-                      letterSpacing: "0.05em",
-                    }}
-                  >
-                    Count
-                  </span>
+                  <span className="bar-value-header">Count</span>
                 )}
               </div>
             </div>
 
             {/* Data Rows */}
             {data.map((item) => (
-              <div
-                key={item.id}
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  borderBottom: "1px solid #f8fafc",
-                }}
-              >
-                <span
-                  style={{
-                    fontSize: "0.9rem",
-                    fontWeight: 600,
-                    color: "#334155",
-                    maxWidth: "50%",
-                    whiteSpace: "nowrap",
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                  }}
-                  title={item.id}
-                >
+              <div key={item.id} className="bar-row-item">
+                <span className="bar-label-text" title={item.id}>
                   {item.id}
                 </span>
 
-                <div style={{ display: "flex", gap: "1.5rem" }}>
+                <div className="bar-values-group">
                   {hasActiveInactive ? (
                     <>
                       <span
                         onClick={() => handleRedirect(item.id, "Active")}
-                        style={{
-                          width: "60px",
-                          textAlign: "right",
-                          fontSize: "0.95rem",
-                          fontWeight: 700,
-                          color: "#10b981",
-                          cursor: "pointer",
-                        }}
+                        className="bar-value-clickable bar-value-green"
                       >
                         {(item.Active || 0) > 0 ? "+" : ""}
                         {item.Active || 0}
                       </span>
                       <span
                         onClick={() => handleRedirect(item.id, "Inactive")}
-                        style={{
-                          width: "60px",
-                          textAlign: "right",
-                          fontSize: "0.95rem",
-                          fontWeight: 700,
-                          color: "#ef4444",
-                          cursor: "pointer",
-                        }}
+                        className="bar-value-clickable bar-value-red"
                       >
                         {(item.Inactive || 0) > 0 ? "-" : ""}
                         {item.Inactive || 0}
                       </span>
                     </>
                   ) : (
-                    <span
-                      style={{
-                        width: "60px",
-                        textAlign: "right",
-                        fontSize: "0.95rem",
-                        fontWeight: 700,
-                        color: "#3b82f6",
-                      }}
-                    >
-                      {item.value || 0}
-                    </span>
+                    <span className="bar-value-static">{item.value || 0}</span>
                   )}
                 </div>
               </div>
             ))}
           </div>
         ) : (
-          <div
-            className="empty-state"
-            style={{
-              padding: "2rem",
-              textAlign: "center",
-              color: "#94a3b8",
-              fontStyle: "italic",
-            }}
-          >
-            No data available
-          </div>
+          <div className="empty-state-text">No data available</div>
         )}
       </div>
     </div>
@@ -387,12 +241,7 @@ const ChartCard = ({ title, data, navigate, featureKey }) => {
           y={centerY - 10}
           textAnchor="middle"
           dominantBaseline="central"
-          style={{
-            fontSize: 32,
-            fontWeight: 800,
-            fill: "#1e293b",
-            fontFamily: '"Inter", sans-serif',
-          }}
+          className="pie-metric-main-text"
         >
           {showPercentage ? `${percentage}%` : total}
         </text>
@@ -401,14 +250,7 @@ const ChartCard = ({ title, data, navigate, featureKey }) => {
           y={centerY + 18}
           textAnchor="middle"
           dominantBaseline="central"
-          style={{
-            fontSize: 11,
-            fontWeight: 600,
-            fill: "#94a3b8",
-            textTransform: "uppercase",
-            letterSpacing: "0.05em",
-            fontFamily: '"Inter", sans-serif',
-          }}
+          className="pie-metric-sub-text"
         >
           {showPercentage ? "Engagement" : "Total Count"}
         </text>
@@ -418,68 +260,26 @@ const ChartCard = ({ title, data, navigate, featureKey }) => {
 
   const CustomPieTooltip = ({ datum }) => {
     return (
-      <div
-        style={{
-          background: "#ffffff",
-          padding: "12px 16px",
-          borderRadius: "8px",
-          color: "#1e293b",
-          boxShadow: "0 4px 15px rgba(0,0,0,0.1)",
-          border: "1px solid #e2e8f0",
-          fontFamily: '"Inter", sans-serif',
-          minWidth: "120px",
-        }}
-      >
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "8px",
-            fontSize: "13px",
-          }}
-        >
+      <div className="pie-custom-tooltip">
+        <div className="pie-tooltip-content">
           <span
-            style={{
-              width: "12px",
-              height: "12px",
-              backgroundColor: datum.color,
-              borderRadius: "4px",
-            }}
+            className="pie-color-dot"
+            style={{ backgroundColor: datum.color }}
           />
-          <span style={{ color: "#64748b" }}>{datum.id}:</span>
-          <strong style={{ color: "#1e293b", marginLeft: "auto" }}>
-            {datum.value}
-          </strong>
+          <span className="pie-tooltip-key">{datum.id}:</span>
+          <strong className="pie-tooltip-val">{datum.value}</strong>
         </div>
       </div>
     );
   };
 
   return (
-    <div
-      className="modern-table-card"
-      style={{
-        transition: "all 0.3s ease",
-        border: "1px solid #e2e8f0",
-        boxShadow: "0 4px 6px -1px rgba(0,0,0,0.02)",
-      }}
-    >
-      <div style={{ padding: "1.5rem 1.75rem 0.5rem" }}>
-        <h2
-          style={{
-            margin: 0,
-            fontSize: "0.8rem",
-            fontWeight: 700,
-            color: "#64748b",
-            textTransform: "uppercase",
-            letterSpacing: "0.05em",
-          }}
-        >
-          {title}
-        </h2>
+    <div className="analytics-card">
+      <div className="card-header-container chart-header">
+        <h2 className="analytics-card-title chart-card-title">{title}</h2>
       </div>
 
-      <div style={{ height: "300px", padding: "1rem" }}>
+      <div className="pie-chart-container">
         {data.length ? (
           <ResponsivePie
             data={data}
@@ -519,7 +319,7 @@ const ChartCard = ({ title, data, navigate, featureKey }) => {
             ]}
           />
         ) : (
-          <div className="empty-state">No data available</div>
+          <div className="empty-state-text">No data available</div>
         )}
       </div>
     </div>
@@ -835,11 +635,10 @@ const MerchantAnalytics = () => {
 
   return (
     <div className="page-layout premium-container">
-      <div className="page-header" style={{ marginBottom: "3rem" }}>
+      <div className="page-header analytics-header-mb">
         <button
           onClick={() => navigate(-1)}
-          className="back-button"
-          style={{ marginBottom: "1rem" }}
+          className="back-button analytics-header-mb"
         >
           <svg
             width="20"
@@ -856,13 +655,8 @@ const MerchantAnalytics = () => {
           </svg>
         </button>
         <div>
-          <h1
-            className="page-title"
-            style={{ fontSize: "2.5rem", letterSpacing: "-0.03em" }}
-          >
-            Merchant Analytics
-          </h1>
-          <p style={{ fontSize: "1.1rem", color: "#64748b" }}>
+          <h1 className="page-title analytics-h1">Merchant Analytics</h1>
+          <p className="analytics-sub-p">
             Real-time overview of application performance and adoption.
           </p>
         </div>
@@ -875,54 +669,18 @@ const MerchantAnalytics = () => {
         </div>
       ) : (
         <div className="premium-content">
-          <section style={{ marginBottom: "5rem" }}>
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                marginBottom: "2rem",
-                gap: "1rem",
-              }}
-            >
-              <div
-                style={{
-                  width: "48px",
-                  height: "48px",
-                  background: "#dbeafe",
-                  color: "#2563eb",
-                  borderRadius: "12px",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  fontSize: "1.25rem",
-                }}
-              >
-                📊
-              </div>
+          <section className="analytics-section-spacing">
+            <div className="section-header-group">
+              <div className="section-icon-box icon-blue">📊</div>
               <div>
-                <h2
-                  style={{
-                    fontSize: "1.5rem",
-                    fontWeight: 700,
-                    color: "#0f172a",
-                    margin: 0,
-                  }}
-                >
-                  Platform Overview
-                </h2>
-                <p style={{ margin: 0, color: "#64748b", fontSize: "0.9rem" }}>
+                <h2 className="section-title-h2">Platform Overview</h2>
+                <p className="section-sub-text">
                   Distribution of statuses and integrations.
                 </p>
               </div>
             </div>
 
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
-                gap: "2rem",
-              }}
-            >
+            <div className="grid-auto-320">
               <ChartCard
                 title={cardNames.appStatusStandardAccount}
                 data={charts.appStatus}
@@ -963,53 +721,17 @@ const MerchantAnalytics = () => {
           </section>
 
           <section>
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                marginBottom: "2rem",
-                gap: "1rem",
-              }}
-            >
-              <div
-                style={{
-                  width: "48px",
-                  height: "48px",
-                  background: "#dcfce7",
-                  color: "#16a34a",
-                  borderRadius: "12px",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  fontSize: "1.25rem",
-                }}
-              >
-                📈
-              </div>
+            <div className="section-header-group">
+              <div className="section-icon-box icon-green">📈</div>
               <div>
-                <h2
-                  style={{
-                    fontSize: "1.5rem",
-                    fontWeight: 700,
-                    color: "#0f172a",
-                    margin: 0,
-                  }}
-                >
-                  Feature Adoption
-                </h2>
-                <p style={{ margin: 0, color: "#64748b", fontSize: "0.9rem" }}>
+                <h2 className="section-title-h2">Feature Adoption</h2>
+                <p className="section-sub-text">
                   Usage breakdown of specific features.
                 </p>
               </div>
             </div>
 
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fit, minmax(500px, 1fr))",
-                gap: "2rem",
-              }}
-            >
+            <div className="grid-auto-500">
               {featureList.map((item, idx) => (
                 <BarChartCard
                   key={idx}

@@ -39,7 +39,7 @@ export default function AdminPanel() {
     execute: refetchData,
   } = useFetch(
     dataService.getAllRecords,
-    isAuthenticated // Fetch immediately if authenticated
+    isAuthenticated, // Fetch immediately if authenticated
   );
 
   // Filter Hooks
@@ -56,7 +56,7 @@ export default function AdminPanel() {
       lastEventSort: "",
       planPriceSort: "",
     },
-    true
+    true,
   );
 
   const {
@@ -192,7 +192,7 @@ export default function AdminPanel() {
     link.setAttribute("href", url);
     link.setAttribute(
       "download",
-      `filtered_shops_${new Date().toISOString().split("T")[0]}.csv`
+      `filtered_shops_${new Date().toISOString().split("T")[0]}.csv`,
     );
     link.style.visibility = "hidden";
     document.body.appendChild(link);

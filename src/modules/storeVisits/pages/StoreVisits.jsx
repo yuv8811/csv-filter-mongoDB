@@ -281,19 +281,11 @@ const StoreVisit = () => {
 
   return (
     <div className="repository-container">
-      <div
-        style={{
-          marginBottom: "1.5rem",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-        }}
-      >
-        <div style={{ display: "flex", alignItems: "center" }}>
+      <div className="store-visits-header">
+        <div className="store-visits-header-left">
           <button
             onClick={() => navigate("/")}
-            className="filter-icon-button"
-            style={{ marginRight: "1rem" }}
+            className="filter-icon-button store-visits-back-btn"
             title="Back to Dashboard"
           >
             <svg
@@ -311,8 +303,8 @@ const StoreVisit = () => {
             </svg>
           </button>
           <div>
-            <h1 style={{ margin: 0 }}>Analytics</h1>
-            <p style={{ margin: 0, fontSize: "0.9rem", color: "#64748b" }}>
+            <h1 className="store-visits-title">Analytics</h1>
+            <p className="store-visits-subtitle">
               Total Stores: <strong>{filteredData.length}</strong>
             </p>
           </div>
@@ -340,37 +332,20 @@ const StoreVisit = () => {
       </div>
 
       {filterFeature && filterLabel && filterStatus && (
-        <div
-          style={{
-            marginBottom: "1rem",
-            color: "#0f172a",
-            fontSize: "0.9rem",
-            padding: "0.5rem",
-            background: "#f1f5f9",
-            borderRadius: "6px",
-            display: "inline-block",
-          }}
-        >
+        <div className="store-visits-filter-badge">
           Filtered by <strong>{filterFeature}</strong>: {filterLabel} —{" "}
           <span
-            style={{
-              color: filterStatus === "Active" ? "#10b981" : "#ef4444",
-              fontWeight: 700,
-            }}
+            className={
+              filterStatus === "Active"
+                ? "store-visits-status-active"
+                : "store-visits-status-inactive"
+            }
           >
             {filterStatus}
           </span>
           <button
             onClick={() => navigate(".")}
-            style={{
-              background: "none",
-              border: "none",
-              cursor: "pointer",
-              marginLeft: "0.5rem",
-              padding: "2px",
-              verticalAlign: "middle",
-              color: "#64748b",
-            }}
+            className="store-visits-clear-filter-btn"
             title="Clear filters"
           >
             <svg
@@ -394,9 +369,9 @@ const StoreVisit = () => {
         <table className="custom-table">
           <thead>
             <tr>
-              <th style={{ textAlign: "left" }}>Shop Domain</th>
-              <th style={{ textAlign: "center" }}>Customer Visits</th>
-              <th style={{ textAlign: "center" }}>Actions</th>
+              <th className="store-visits-th-left">Shop Domain</th>
+              <th className="store-visits-th-center">Customer Visits</th>
+              <th className="store-visits-th-center">Actions</th>
             </tr>
           </thead>
 
@@ -410,22 +385,18 @@ const StoreVisit = () => {
             ) : (
               filteredData.map((item) => (
                 <tr key={item.shopDomain}>
-                  <td className="font-semibold" style={{ textAlign: "left" }}>
+                  <td className="font-semibold store-visits-td-left">
                     <div className="domain-wrapper">
                       {normalizeDomain(item.shopDomain)}
                     </div>
                   </td>
-                  <td
-                    className="font-mono-muted font-bold"
-                    style={{ textAlign: "center" }}
-                  >
+                  <td className="font-mono-muted font-bold store-visits-td-center">
                     {item.totalCount ?? 0}
                   </td>
-                  <td style={{ textAlign: "center" }}>
+                  <td className="store-visits-td-center">
                     <button
                       type="button"
-                      className="filter-icon-button"
-                      style={{ margin: "0 auto" }}
+                      className="filter-icon-button store-visits-action-btn-wrapper"
                       onClick={() => onViewDetail(item)}
                     >
                       <svg
